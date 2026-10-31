@@ -87,3 +87,4 @@ if (errors.length > 0) {
 }
 
 console.log(`Secret scan passed (${files.length} tracked/staged files checked).`);
+

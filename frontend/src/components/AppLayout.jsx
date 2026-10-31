@@ -1,0 +1,98 @@
+import { Link, useLocation } from 'react-router-dom';
+import { useApp } from '../state/AppContext.jsx';
+import { SUPPORTED_LANGUAGES } from '../i18n/index.js';
+import { getMacroPhase, MACRO_PHASES } from '../state/caseMachine.js';
+
+export function AppLayout({ children }) {
+  const { language, setLanguage, t, caseState } = useApp();
+  const location = useLocation();
+  const activePhase = getMacroPhase(caseState.status);
+
+  const phases = [
+    {
+      id: MACRO_PHASES.SAMAJHNA,
+      title: t('phaseSamajhna'),
+      desc: t('phaseSamajhnaDesc'),
+    },
+    {
+      id: MACRO_PHASES.KARNA,
+      title: t('phaseKarna'),
+      desc: t('phaseKarnaDesc'),
+    },
+    {
+      id: MACRO_PHASES.PEECHA_KARNA,
+      title: t('phasePeechaKarna'),
+      desc: t('phasePeechaKarnaDesc'),
+    },
+  ];
+
+  return (
+    <div className="ns-shell">
+      <header className="ns-header" role="banner">
+        <div className="ns-header-brand">
+          <Link to="/" className="ns-brand-link">
+            <span className="ns-brand-title">{t('appName')}</span>
+          </Link>
+          <p className="ns-brand-slogan">{t('slogan')}</p>
+        </div>
+
+        <nav
+          className="ns-lang-switcher"
+          aria-label={t('headerLanguageLabel')}
+        >
+          {SUPPORTED_LANGUAGES.map((langItem) => {
+            const isActive = language === langItem.code;
+            return (
+              <button
+                key={langItem.code}
+                type="button"
+                data-testid={`header-lang-${langItem.shortCode}`}
+                className={`ns-btn ns-lang-chip ${isActive ? 'ns-lang-chip-active' : ''}`}
+                aria-pressed={isActive}
+                onClick={() => setLanguage(langItem.code)}
+              >
+                {langItem.nativeLabel}
+              </button>
+            );
+          })}
+          {location.pathname !== '/' && (
+            <Link to="/" className="ns-btn ns-btn-outline">
+              {t('changeLanguage')}
+            </Link>
+          )}
+        </nav>
+      </header>
+
+      <section
+        className="ns-progress-bar"
+        aria-label="Service Progress Indicator"
+      >
+        <div className="ns-progress-grid">
+          {phases.map((phase) => {
+            const isCurrent = activePhase === phase.id;
+            return (
+              <div
+                key={phase.id}
+                data-testid={`phase-${phase.id}`}
+                className={`ns-phase-step ${isCurrent ? 'ns-phase-step-active' : ''}`}
+                aria-current={isCurrent ? 'step' : undefined}
+              >
+                <div className="ns-phase-title">{phase.title}</div>
+                <div className="ns-phase-desc">{phase.desc}</div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <main className="ns-main" role="main">
+        {children}
+      </main>
+
+      <footer className="ns-footer" role="contentinfo">
+        <p data-testid="prototype-footer">{t('footerDisclaimer')}</p>
+      </footer>
+    </div>
+  );
+}
+

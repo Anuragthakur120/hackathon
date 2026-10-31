@@ -9,3 +9,4 @@
     "build": "node -e \"console.log('@nagarsathi/database: build ok (M0 stub)')\""
   }
 }
+
