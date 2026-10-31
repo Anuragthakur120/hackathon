@@ -1,0 +1,259 @@
+{
+  "id": "ration_card",
+  "code": "FCS-RC-MH-03",
+  "department": {
+    "mr": "अन्न, नागरी पुरवठा व ग्राहक संरक्षण विभाग (Food & Civil Supplies)",
+    "hi": "खाद्य, नागरिक आपूर्ति एवं उपभोक्ता संरक्षण विभाग (Food & Civil Supplies)",
+    "en": "Department of Food, Civil Supplies and Consumer Protection"
+  },
+  "name": {
+    "mr": "नवीन रेशन कार्ड / नाव समाविष्ट करणे (Ration Card Service)",
+    "hi": "नया राशन कार्ड / सदस्य जोड़ना (Ration Card Service)",
+    "en": "New Ration Card / Member Addition Service"
+  },
+  "description": {
+    "mr": "अंत्योदय (AAY) किंवा प्राधान्य कुटुंब (PHH) रेशन कार्डसाठी अर्ज किंवा दुरुस्ती.",
+    "hi": "अंत्योदय (AAY) या प्राथमिकता परिवार (PHH) राशन कार्ड के लिए आवेदन या सुधार।",
+    "en": "Apply for or update Antyodaya (AAY) or Priority Household (PHH) Ration Card."
+  },
+  "fields": [
+    {
+      "key": "head_of_family_name",
+      "source": "PROFILE",
+      "profile_key": "fullName",
+      "label": {
+        "mr": "कुटुंब प्रमुखाचे नाव",
+        "hi": "परिवार के मुखिया का नाम",
+        "en": "Head of Family Name"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "dob",
+      "source": "PROFILE",
+      "profile_key": "dob",
+      "label": {
+        "mr": "जन्मतारीख",
+        "hi": "जन्म तिथि",
+        "en": "Date of Birth"
+      },
+      "sensitive": false,
+      "type": "date",
+      "required": true
+    },
+    {
+      "key": "gender",
+      "source": "PROFILE",
+      "profile_key": "gender",
+      "label": {
+        "mr": "लिंग",
+        "hi": "लिंग",
+        "en": "Gender"
+      },
+      "sensitive": false,
+      "type": "enum",
+      "options": ["Female", "Male", "Other"],
+      "required": true
+    },
+    {
+      "key": "aadhaar_masked",
+      "source": "DOCUMENT",
+      "document_key": "aadhaar_card",
+      "label": {
+        "mr": "आधार क्रमांक (मास्क केलेला)",
+        "hi": "आधार संख्या (मास्क किया गया)",
+        "en": "Aadhaar Number (Masked)"
+      },
+      "sensitive": true,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "mobile",
+      "source": "PROFILE",
+      "profile_key": "mobileMasked",
+      "label": {
+        "mr": "मोबाईल क्रमांक (मास्क केलेला)",
+        "hi": "मोबाइल नंबर (मास्क किया गया)",
+        "en": "Mobile Number (Masked)"
+      },
+      "sensitive": true,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "address",
+      "source": "PROFILE",
+      "profile_key": "address",
+      "label": {
+        "mr": "निवासी पत्ता",
+        "hi": "निवास का पता",
+        "en": "Residential Address"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "district",
+      "source": "PROFILE",
+      "profile_key": "district",
+      "label": {
+        "mr": "जिल्हा",
+        "hi": "जिला",
+        "en": "District"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "family_members_count",
+      "source": "ASK_CITIZEN",
+      "label": {
+        "mr": "कुटुंबातील एकूण सदस्य संख्या",
+        "hi": "परिवार के कुल सदस्यों की संख्या",
+        "en": "Total Family Members Count"
+      },
+      "sensitive": false,
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "annual_family_income",
+      "source": "DOCUMENT",
+      "document_key": "income_certificate",
+      "label": {
+        "mr": "वार्षिक कौटुंबिक उत्पन्न (₹)",
+        "hi": "वार्षिक पारिवारिक आय (₹)",
+        "en": "Annual Family Income (INR)"
+      },
+      "sensitive": false,
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "card_category",
+      "source": "DERIVED",
+      "derive_from": "annual_family_income",
+      "label": {
+        "mr": "रेशन कार्ड प्रकार (PHH / AAY / NPHH)",
+        "hi": "राशन कार्ड श्रेणी (PHH / AAY / NPHH)",
+        "en": "Ration Card Category (PHH / AAY / NPHH)"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "delivery_mode",
+      "source": "DEFAULT",
+      "default_value": "E_RATION_CARD_AND_POST",
+      "label": {
+        "mr": "कार्ड वितरण पद्धत",
+        "hi": "कार्ड वितरण माध्यम",
+        "en": "Card Delivery Mode"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    }
+  ],
+  "documents": [
+    {
+      "key": "aadhaar_card",
+      "label": {
+        "mr": "कुटुंब प्रमुखाचे आधार कार्ड",
+        "hi": "परिवार के मुखिया का आधार कार्ड",
+        "en": "Head of Family Aadhaar Card"
+      },
+      "mandatory": true
+    },
+    {
+      "key": "address_proof",
+      "label": {
+        "mr": "निवासी पुरावा (वीज बिल / भाडेकरार)",
+        "hi": "निवास प्रमाण (बिजली बिल / किरायानामा)",
+        "en": "Address Proof (Electricity Bill / Rent Agreement)"
+      },
+      "mandatory": true,
+      "max_age_days": 90
+    },
+    {
+      "key": "income_certificate",
+      "label": {
+        "mr": "उत्पन्नाचा दाखला (तहसीलदार)",
+        "hi": "आय प्रमाण पत्र (तहसीलदार)",
+        "en": "Income Certificate (Tehsildar)"
+      },
+      "mandatory": false,
+      "max_age_days": 365,
+      "required_if": {
+        "field": "card_category",
+        "operator": "not_equals",
+        "value": "NPHH"
+      }
+    }
+  ],
+  "steps": [
+    { "step": 1, "status": "LANGUAGE_SELECTED", "phase": "SAMAJHNA", "label": { "mr": "भाषा निवडली", "hi": "भाषा चुनी गई", "en": "Language Selected" } },
+    { "step": 2, "status": "INTAKE", "phase": "SAMAJHNA", "label": { "mr": "समस्या नोंदणी", "hi": "समस्या दर्ज", "en": "Problem Intake" } },
+    { "step": 3, "status": "CLARIFYING", "phase": "SAMAJHNA", "label": { "mr": "स्पष्टीकरण प्रश्न", "hi": "स्पष्टीकरण प्रश्न", "en": "Clarifying Question" } },
+    { "step": 4, "status": "SERVICE_CONFIRMED", "phase": "SAMAJHNA", "label": { "mr": "सेवा निश्चित", "hi": "सेवा की पुष्टि", "en": "Service Confirmed" } },
+    { "step": 5, "status": "CONSENT_PENDING", "phase": "SAMAJHNA", "label": { "mr": "संमती प्रलंबित (गेट १)", "hi": "सहमति लंबित (गेट 1)", "en": "Consent Pending (Gate 1)" } },
+    { "step": 6, "status": "CONSENTED", "phase": "SAMAJHNA", "label": { "mr": "संमती दिली (गेट १)", "hi": "सहमति दी गई (गेट 1)", "en": "Consent Given (Gate 1)" } },
+    { "step": 7, "status": "PROFILE_SAVE_CONSENT", "phase": "KARNA", "label": { "mr": "प्रोफाइल जतन पसंती", "hi": "प्रोफ़ाइल सेव विकल्प", "en": "Profile Save Preference" } },
+    { "step": 8, "status": "DOCS_CHECKLIST", "phase": "KARNA", "label": { "mr": "कागदपत्र यादी", "hi": "दस्तावेज़ सूची", "en": "Documents Checklist" } },
+    { "step": 9, "status": "DOCS_READY", "phase": "KARNA", "label": { "mr": "कागदपत्रे तयार", "hi": "दस्तावेज़ तैयार", "en": "Documents Verified & Ready" } },
+    { "step": 10, "status": "FORM_FILLED", "phase": "KARNA", "label": { "mr": "मसुदा अर्ज तयार (DRAFT)", "hi": "ड्राफ्ट फॉर्म तैयार (DRAFT)", "en": "Draft Form Filled (DRAFT)" } },
+    { "step": 11, "status": "APPROVED", "phase": "KARNA", "label": { "mr": "अंतिम मंजुरी (गेट २)", "hi": "अंतिम मंजूरी (गेट 2)", "en": "Citizen Approved (Gate 2)" } },
+    { "step": 12, "status": "SUBMITTED", "phase": "PEECHA_KARNA", "label": { "mr": "अर्ज सादर केला", "hi": "आवेदन जमा किया गया", "en": "Application Submitted" } },
+    { "step": 13, "status": "TRACKING", "phase": "PEECHA_KARNA", "label": { "mr": "स्थिती मागोवा", "hi": "स्थिति ट्रैकिंग", "en": "Status Tracking" } },
+    { "step": 14, "status": "QUERY_RAISED", "phase": "PEECHA_KARNA", "label": { "mr": "कार्यालयाची विचारणा", "hi": "कार्यालय का सवाल", "en": "Office Query Raised" } },
+    { "step": 15, "status": "STALLED", "phase": "PEECHA_KARNA", "label": { "mr": "अर्ज थांबलेला (७ दिवस)", "hi": "आवेदन रुका हुआ (7 दिन)", "en": "Application Stalled (7 Days)" } },
+    { "step": 16, "status": "CLOSED", "phase": "PEECHA_KARNA", "label": { "mr": "रेशन कार्ड जारी (प्रकरण पूर्ण)", "hi": "राशन कार्ड जारी (केस पूर्ण)", "en": "Ration Card Issued (Case Closed)" } }
+  ],
+  "portal": {
+    "start_path": "/portal/ration-card/apply",
+    "pages": [
+      {
+        "page_id": "household_details",
+        "title": "Household & Member Details",
+        "fields": [
+          { "key": "head_of_family_name", "selector": "#input-hof-name", "source": "PROFILE" },
+          { "key": "dob", "selector": "#input-dob", "source": "PROFILE" },
+          { "key": "gender", "selector": "#select-gender", "source": "PROFILE" },
+          { "key": "aadhaar_masked", "selector": "#input-aadhaar", "source": "DOCUMENT" },
+          { "key": "mobile", "selector": "#input-mobile", "source": "PROFILE" },
+          { "key": "address", "selector": "#textarea-address", "source": "PROFILE" },
+          { "key": "district", "selector": "#select-district", "source": "PROFILE" },
+          { "key": "family_members_count", "selector": "#input-members-count", "source": "ASK_CITIZEN" },
+          { "key": "annual_family_income", "selector": "#input-annual-income", "source": "DOCUMENT" },
+          { "key": "card_category", "selector": "#select-card-category", "source": "DERIVED" },
+          { "key": "delivery_mode", "selector": "#select-delivery-mode", "source": "DEFAULT" }
+        ]
+      }
+    ],
+    "uploads": {
+      "#upload-aadhaar": "aadhaar_card",
+      "#upload-address-proof": "address_proof",
+      "#upload-income-certificate": "income_certificate"
+    },
+    "submit_selector": "#btn-submit-ration-application",
+    "submit": "#btn-submit-ration-application",
+    "result_selector": "#application-id-result"
+  },
+  "tracking": {
+    "stall_after_days": 7,
+    "check_every_hours": 8
+  },
+  "office_call": {
+    "department": "Food & Civil Supplies Ration Card Office, Pune",
+    "phone": "1800-111-557",
+    "may_say": ["application_id", "name"],
+    "never_say": ["aadhaar", "otp", "password", "account_number"]
+  }
+}
+

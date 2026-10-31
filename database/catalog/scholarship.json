@@ -1,0 +1,327 @@
+{
+  "id": "scholarship",
+  "code": "MAHADBT-SCH-02",
+  "department": {
+    "mr": "उच्च व तंत्र शिक्षण आणि सामाजिक न्याय विभाग (MahaDBT)",
+    "hi": "उच्च एवं तकनीकी शिक्षा तथा सामाजिक न्याय विभाग (MahaDBT)",
+    "en": "Directorate of Higher Education & Social Justice (MahaDBT)"
+  },
+  "name": {
+    "mr": "पोस्ट-मॅट्रिक शिष्यवृत्ती योजना (Post-Matric Scholarship)",
+    "hi": "पोस्ट-मैट्रिक छात्रवृत्ति योजना (Post-Matric Scholarship)",
+    "en": "Post-Matric Scholarship Scheme"
+  },
+  "description": {
+    "mr": "महाविद्यालयीन विद्यार्थ्यांसाठी शिक्षण शुल्क व देखभाल भत्ता शिष्यवृत्ती अर्ज.",
+    "hi": "कॉलेज के छात्रों के लिए शिक्षण शुल्क और रखरखाव भत्ता छात्रवृत्ति आवेदन।",
+    "en": "Tuition fee and maintenance allowance scholarship application for post-matric students."
+  },
+  "fields": [
+    {
+      "key": "full_name",
+      "source": "PROFILE",
+      "profile_key": "fullName",
+      "label": {
+        "mr": "विद्यार्थ्याचे पूर्ण नाव",
+        "hi": "छात्र का पूरा नाम",
+        "en": "Full Name"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "dob",
+      "source": "PROFILE",
+      "profile_key": "dob",
+      "label": {
+        "mr": "जन्मतारीख",
+        "hi": "जन्म तिथि",
+        "en": "Date of Birth"
+      },
+      "sensitive": false,
+      "type": "date",
+      "required": true
+    },
+    {
+      "key": "gender",
+      "source": "PROFILE",
+      "profile_key": "gender",
+      "label": {
+        "mr": "लिंग",
+        "hi": "लिंग",
+        "en": "Gender"
+      },
+      "sensitive": false,
+      "type": "enum",
+      "options": ["Female", "Male", "Other"],
+      "required": true
+    },
+    {
+      "key": "aadhaar_masked",
+      "source": "DOCUMENT",
+      "document_key": "aadhaar_card",
+      "label": {
+        "mr": "आधार क्रमांक (मास्क केलेला)",
+        "hi": "आधार संख्या (मास्क किया गया)",
+        "en": "Aadhaar Number (Masked)"
+      },
+      "sensitive": true,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "mobile",
+      "source": "PROFILE",
+      "profile_key": "mobileMasked",
+      "label": {
+        "mr": "मोबाईल क्रमांक (मास्क केलेला)",
+        "hi": "मोबाइल नंबर (मास्क किया गया)",
+        "en": "Mobile Number (Masked)"
+      },
+      "sensitive": true,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "address",
+      "source": "PROFILE",
+      "profile_key": "address",
+      "label": {
+        "mr": "निवासी पत्ता",
+        "hi": "निवास का पता",
+        "en": "Residential Address"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "district",
+      "source": "PROFILE",
+      "profile_key": "district",
+      "label": {
+        "mr": "जिल्हा",
+        "hi": "जिला",
+        "en": "District"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "caste_category",
+      "source": "PROFILE",
+      "profile_key": "casteCategory",
+      "label": {
+        "mr": "जात प्रवर्ग",
+        "hi": "जाति वर्ग",
+        "en": "Caste Category"
+      },
+      "sensitive": false,
+      "type": "enum",
+      "options": ["General", "OBC", "SC", "ST", "VJNT", "EWS"],
+      "required": true
+    },
+    {
+      "key": "annual_family_income",
+      "source": "DOCUMENT",
+      "document_key": "income_certificate",
+      "label": {
+        "mr": "वार्षिक कौटुंबिक उत्पन्न (₹)",
+        "hi": "वार्षिक पारिवारिक आय (₹)",
+        "en": "Annual Family Income (INR)"
+      },
+      "sensitive": false,
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "course_name",
+      "source": "ASK_CITIZEN",
+      "label": {
+        "mr": "अभ्यासक्रमाचे नाव",
+        "hi": "पाठ्यक्रम का नाम",
+        "en": "Course Name"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "institute_name",
+      "source": "ASK_CITIZEN",
+      "label": {
+        "mr": "महाविद्यालय / संस्थेचे नाव",
+        "hi": "कॉलेज / संस्थान का नाम",
+        "en": "Institute Name"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "previous_year_marks_pct",
+      "source": "DOCUMENT",
+      "document_key": "marksheet",
+      "label": {
+        "mr": "मागील वर्षाचे गुण (%)",
+        "hi": "पिछले वर्ष के अंक (%)",
+        "en": "Previous-Year Marks (%)"
+      },
+      "sensitive": false,
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "bank_account_masked",
+      "source": "DOCUMENT",
+      "document_key": "bank_passbook",
+      "label": {
+        "mr": "बँक खाते क्रमांक (मास्क केलेला)",
+        "hi": "बैंक खाता संख्या (मास्क किया गया)",
+        "en": "Bank Account Number (Masked)"
+      },
+      "sensitive": true,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "ifsc",
+      "source": "DOCUMENT",
+      "document_key": "bank_passbook",
+      "label": {
+        "mr": "IFSC कोड",
+        "hi": "IFSC कोड",
+        "en": "IFSC Code"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    }
+  ],
+  "documents": [
+    {
+      "key": "aadhaar_card",
+      "label": {
+        "mr": "आधार कार्ड",
+        "hi": "आधार कार्ड",
+        "en": "Aadhaar Card"
+      },
+      "mandatory": true
+    },
+    {
+      "key": "income_certificate",
+      "label": {
+        "mr": "उत्पन्नाचा दाखला (तहसीलदार)",
+        "hi": "आय प्रमाण पत्र (तहसीलदार)",
+        "en": "Income Certificate (Tehsildar)"
+      },
+      "mandatory": true,
+      "max_age_days": 365
+    },
+    {
+      "key": "caste_certificate",
+      "label": {
+        "mr": "जातीचा दाखला",
+        "hi": "जाति प्रमाण पत्र",
+        "en": "Caste Certificate"
+      },
+      "mandatory": false,
+      "required_if": {
+        "field": "caste_category",
+        "operator": "not_equals",
+        "value": "General"
+      }
+    },
+    {
+      "key": "marksheet",
+      "label": {
+        "mr": "मागील परीक्षेची गुणपत्रिका",
+        "hi": "पिछली परीक्षा की अंकतालिका",
+        "en": "Previous-Year Marksheet"
+      },
+      "mandatory": true
+    },
+    {
+      "key": "bank_passbook",
+      "label": {
+        "mr": "बँक पासबुक प्रत",
+        "hi": "बैंक पासबुक की प्रति",
+        "en": "Bank Passbook Copy"
+      },
+      "mandatory": true
+    }
+  ],
+  "steps": [
+    { "step": 1, "status": "LANGUAGE_SELECTED", "phase": "SAMAJHNA", "label": { "mr": "भाषा निवडली", "hi": "भाषा चुनी गई", "en": "Language Selected" } },
+    { "step": 2, "status": "INTAKE", "phase": "SAMAJHNA", "label": { "mr": "समस्या नोंदणी", "hi": "समस्या दर्ज", "en": "Problem Intake" } },
+    { "step": 3, "status": "CLARIFYING", "phase": "SAMAJHNA", "label": { "mr": "स्पष्टीकरण प्रश्न", "hi": "स्पष्टीकरण प्रश्न", "en": "Clarifying Question" } },
+    { "step": 4, "status": "SERVICE_CONFIRMED", "phase": "SAMAJHNA", "label": { "mr": "सेवा निश्चित", "hi": "सेवा की पुष्टि", "en": "Service Confirmed" } },
+    { "step": 5, "status": "CONSENT_PENDING", "phase": "SAMAJHNA", "label": { "mr": "संमती प्रलंबित (गेट १)", "hi": "सहमति लंबित (गेट 1)", "en": "Consent Pending (Gate 1)" } },
+    { "step": 6, "status": "CONSENTED", "phase": "SAMAJHNA", "label": { "mr": "संमती दिली (गेट १)", "hi": "सहमति दी गई (गेट 1)", "en": "Consent Given (Gate 1)" } },
+    { "step": 7, "status": "PROFILE_SAVE_CONSENT", "phase": "KARNA", "label": { "mr": "प्रोफाइल जतन पसंती", "hi": "प्रोफ़ाइल सेव विकल्प", "en": "Profile Save Preference" } },
+    { "step": 8, "status": "DOCS_CHECKLIST", "phase": "KARNA", "label": { "mr": "कागदपत्र यादी", "hi": "दस्तावेज़ सूची", "en": "Documents Checklist" } },
+    { "step": 9, "status": "DOCS_READY", "phase": "KARNA", "label": { "mr": "कागदपत्रे तयार", "hi": "दस्तावेज़ तैयार", "en": "Documents Verified & Ready" } },
+    { "step": 10, "status": "FORM_FILLED", "phase": "KARNA", "label": { "mr": "मसुदा अर्ज तयार (DRAFT)", "hi": "ड्राफ्ट फॉर्म तैयार (DRAFT)", "en": "Draft Form Filled (DRAFT)" } },
+    { "step": 11, "status": "APPROVED", "phase": "KARNA", "label": { "mr": "अंतिम मंजुरी (गेट २)", "hi": "अंतिम मंजूरी (गेट 2)", "en": "Citizen Approved (Gate 2)" } },
+    { "step": 12, "status": "SUBMITTED", "phase": "PEECHA_KARNA", "label": { "mr": "अर्ज सादर केला", "hi": "आवेदन जमा किया गया", "en": "Application Submitted" } },
+    { "step": 13, "status": "TRACKING", "phase": "PEECHA_KARNA", "label": { "mr": "स्थिती मागोवा", "hi": "स्थिति ट्रैकिंग", "en": "Status Tracking" } },
+    { "step": 14, "status": "QUERY_RAISED", "phase": "PEECHA_KARNA", "label": { "mr": "कार्यालयाची विचारणा", "hi": "कार्यालय का सवाल", "en": "Office Query Raised" } },
+    { "step": 15, "status": "STALLED", "phase": "PEECHA_KARNA", "label": { "mr": "अर्ज थांबलेला (७ दिवस)", "hi": "आवेदन रुका हुआ (7 दिन)", "en": "Application Stalled (7 Days)" } },
+    { "step": 16, "status": "CLOSED", "phase": "PEECHA_KARNA", "label": { "mr": "शिष्यवृत्ती मंजूर (प्रकरण पूर्ण)", "hi": "छात्रवृत्ति स्वीकृत (केस पूर्ण)", "en": "Scholarship Sanctioned (Case Closed)" } }
+  ],
+  "portal": {
+    "start_path": "/portal/scholarship/apply",
+    "pages": [
+      {
+        "page_id": "student_personal",
+        "title": "Student Personal & Category Details",
+        "next_selector": "#btn-next-academic",
+        "fields": [
+          { "key": "full_name", "selector": "#input-full-name", "source": "PROFILE" },
+          { "key": "dob", "selector": "#input-dob", "source": "PROFILE" },
+          { "key": "gender", "selector": "#select-gender", "source": "PROFILE" },
+          { "key": "aadhaar_masked", "selector": "#input-aadhaar", "source": "DOCUMENT" },
+          { "key": "mobile", "selector": "#input-mobile", "source": "PROFILE" },
+          { "key": "address", "selector": "#textarea-address", "source": "PROFILE" },
+          { "key": "district", "selector": "#select-district", "source": "PROFILE" },
+          { "key": "caste_category", "selector": "#select-caste-category", "source": "PROFILE" },
+          { "key": "annual_family_income", "selector": "#input-annual-income", "source": "DOCUMENT" }
+        ]
+      },
+      {
+        "page_id": "academic_and_bank",
+        "title": "Academic & Bank Details",
+        "fields": [
+          { "key": "course_name", "selector": "#input-course-name", "source": "ASK_CITIZEN" },
+          { "key": "institute_name", "selector": "#input-institute-name", "source": "ASK_CITIZEN" },
+          { "key": "previous_year_marks_pct", "selector": "#input-marks-pct", "source": "DOCUMENT" },
+          { "key": "bank_account_masked", "selector": "#input-bank-account", "source": "DOCUMENT" },
+          { "key": "ifsc", "selector": "#input-ifsc", "source": "DOCUMENT" }
+        ]
+      }
+    ],
+    "uploads": {
+      "#upload-aadhaar": "aadhaar_card",
+      "#upload-income-certificate": "income_certificate",
+      "#upload-caste-certificate": "caste_certificate",
+      "#upload-marksheet": "marksheet",
+      "#upload-bank-passbook": "bank_passbook"
+    },
+    "submit_selector": "#btn-submit-scholarship-application",
+    "submit": "#btn-submit-scholarship-application",
+    "result_selector": "#application-id-result"
+  },
+  "tracking": {
+    "stall_after_days": 7,
+    "check_every_hours": 12
+  },
+  "office_call": {
+    "department": "MahaDBT Post-Matric Scholarship Desk, Pune",
+    "phone": "1800-111-556",
+    "may_say": ["application_id", "name"],
+    "never_say": ["aadhaar", "otp", "password", "account_number"]
+  }
+}
+

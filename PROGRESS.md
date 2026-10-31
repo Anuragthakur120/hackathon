@@ -41,25 +41,32 @@ This file tracks module-by-module progress, verification checklists, architectur
 
 ## Module F5: Frontend Final Check & Hardening
 
-### What Was Built
-- **Accessibility Hardening (`AppLayout.jsx`, `WorkflowShellScreen.jsx`, `styles.css`, `i18n/{mr,hi,en}.json`)**:
-  - Added keyboard skip-to-main link (`#ns-main-content`) with visible high-contrast focus styling.
-  - Added localized `aria-label` attributes in Marathi (`mr-IN`), Hindi (`hi-IN`), and English (`en-IN`) across landmarks, navigation, progress bars, voice guide banner, persona card, and interactive controls.
-  - Enforced touch targets `>= 56px` across all buttons (`button.ns-btn`).
-- **i18n Key Parity Test (`f5.test.jsx`)**:
-  - Automated test that fails if any key is missing or empty in `mr.json`, `hi.json`, or `en.json`.
-- **API Mode Switch & Real API Stub Parity (`api/index.js`, `api/realApi.js`)**:
-  - Added `selectApi(mode)` and `getApiMode(mode)` helpers and aligned every method name and parameter signature in `realApi.js` with `mockApi.js`.
-  - Added an automated source scan in `f5.test.jsx` verifying zero hardcoded secrets in `/frontend/src`.
-- **360px Mobile & 1280px Desktop Verification + All 5 Failure Paths (`f5.test.jsx`)**:
-  - Verified full 16-step mock demo plus all 5 failure paths (`consent NO`, `approval NO`, `portal fail x3`, `voice fail`, `unknown service` -> Madad Kendra) at both `360px` and `1280px` viewport widths.
-- **Documentation (`frontend/README.md`)**:
-  - Documented how to run, environment variables, Marathi (`mr-IN`) voice test instructions on Android Chrome and laptop Chrome, and the exact table of fixed sentences requiring `.mp3` recordings (`welcome`, `consent`, `approval`).
-
 ### Verification Checklist (F5)
+- [x] **All F5 checks, UI screenshots & push**: PASS (`619ea57`, tag `F5-passed`)
+
+---
+
+## Module D1: Database (MongoDB + Mongoose, 3 Data Layers, Catalog JSONs, Auto-Fill & Seed)
+
+### What Was Built
+- **Mongoose Models & Schemas (`database/src/models/index.js`)**:
+  - `User` (`phone` unique, `phoneMasked`, `language` default `mr-IN`, `role` default `citizen`).
+  - **Layer 1 — `Profile`**: Saved only when `consentGiven === true`; sensitive fields (`aadhaarEncrypted`, `mobileEncrypted`, `bankAccountEncrypted`) encrypted at rest with `AES-256-GCM` (`database/src/crypto.js`) and paired with last-4 masked strings (`XXXX-XXXX-4821`, `XXXXXX3210`, `XXXXXXXX9012`).
+  - **Layer 2 — `VaultDoc`**: Encrypted document metadata (`encryptedMetadata`), `type`, `status`, `issuedAt`, `maxAgeDays`, `uploadedAt`.
+  - **Layer 3 — `Case`**: 16-step statuses (`CASE_16_STEP_STATUSES`), `history[]`, `consent{caseConsent, saveProfileConsent}`, `approval{given, at, byPhysicalButton}` (enforcing Gate 1 & Gate 2 before `SUBMITTED`), `draftFields[]`, `appId`, `refNo`, `queryDetails`, `stallDetails`, `nextCheckAt`, and **30-day TTL index** (`expireAfterSeconds: 2592000` on `createdAt`).
+  - `AuditLog`: `actor`, `action`, `caseId`, `timestamp`, and automatically scrubbed `maskedPayload`.
+  - `ServiceCatalog`: Persisted service catalog definitions.
+- **Service Catalog JSONs & Validator (`database/catalog/*.json`, `database/src/validator.js`)**:
+  - `pension.json`, `scholarship.json` (14 fields), and `ration_card.json` with multilingual labels (`mr`/`hi`/`en`), `source` tags (`PROFILE`, `DOCUMENT`, `ASK_CITIZEN`, `DERIVED`, `DEFAULT`, `PORTAL_GENERATED`), `sensitive` flags, `required_if` conditional documents, `max_age_days` expiry rules, `portal` selectors, `tracking` (`stall_after_days: 7`), and `office_call` (`may_say` / `never_say`).
+- **Auto-Fill Engine (`database/src/autofill.js`)**:
+  - Populates fields from higher-trust sources first (`PROFILE` -> `DOCUMENT` -> `DERIVED` -> `DEFAULT` -> `ASK_CITIZEN`) and evaluates `required_if` and `max_age_days`.
+- **Seed Script & Cascading Delete (`database/src/seed.js`, `database/src/deleteAllData.js`)**:
+  - Seeds demo citizen Ramabai Kulkarni, her encrypted Profile and VaultDocs, the 3 service catalogs, and `CASE-DEMO-001` (`PEN-2026-88213`, `REF-5521`) with Day-10 query and +21-day stall triggers.
+  - `deleteAllCitizenData(userId)` removes records across all 3 data layers (`Profile`, `VaultDoc`, `Case`, `User`) and logs an anonymized `AuditLog` entry.
+
+### Verification Checklist (D1)
 - [x] **Install dependencies (`npm install`)**: PASS
 - [x] **Lint all workspaces (`npm run lint`)**: PASS (`eslint src --max-warnings=0`)
-- [x] **Regression + F5 unit & E2E tests (`npm run test`)**: PASS (22/22 tests across `f1.test.jsx`, `f2.test.jsx`, `f3.test.jsx`, `f4.test.jsx`, and `f5.test.jsx`)
-- [x] **Production build (`npm run build`)**: PASS
+- [x] **Regression (F1–F5) + D1 unit tests (`npm run test`)**: PASS (22 frontend tests + 5 database tests = 27/27 passed)
+- [x] **Build & catalog validation (`npm run build`)**: PASS
 - [x] **Secret scan (`npm run scan:secrets`)**: PASS
-- [x] **UI smoke check & 360px + 1280px screenshots**: PASS

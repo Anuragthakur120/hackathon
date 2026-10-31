@@ -3,10 +3,24 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./catalog/*": "./catalog/*"
+  },
   "scripts": {
-    "lint": "node -e \"console.log('@nagarsathi/database: lint ok (M0 stub)')\"",
-    "test": "node -e \"console.log('@nagarsathi/database: test ok (M0 stub)')\"",
-    "build": "node -e \"console.log('@nagarsathi/database: build ok (M0 stub)')\""
+    "lint": "eslint src --max-warnings=0",
+    "test": "vitest run",
+    "build": "node src/validate-build.js",
+    "seed": "node src/seed-cli.js"
+  },
+  "dependencies": {
+    "mongoose": "^8.9.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.16.0",
+    "eslint": "^9.16.0",
+    "globals": "^15.13.0",
+    "vitest": "^2.1.8"
   }
 }
-

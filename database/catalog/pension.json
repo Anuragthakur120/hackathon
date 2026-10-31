@@ -1,0 +1,326 @@
+{
+  "id": "pension",
+  "code": "IGNOAPS-MH-01",
+  "department": {
+    "mr": "सामाजिक न्याय व विशेष सहाय्य विभाग (Social Justice Dept)",
+    "hi": "सामाजिक न्याय एवं विशेष सहायता विभाग (Social Justice Dept)",
+    "en": "Department of Social Justice and Special Assistance"
+  },
+  "name": {
+    "mr": "इंदिरा गांधी राष्ट्रीय वृद्धापकाळ / विधवा पेन्शन योजना",
+    "hi": "इंदिरा गांधी राष्ट्रीय वृद्धावस्था / विधवा पेंशन योजना",
+    "en": "Indira Gandhi National Old Age / Widow Pension Scheme"
+  },
+  "description": {
+    "mr": "वृद्ध आणि विधवा नागरिकांसाठी मासिक निवृत्तीवेतन सुरू करणे किंवा थांबलेले पेन्शन पुन्हा चालू करणे.",
+    "hi": "वरिष्ठ और विधवा नागरिकों के लिए मासिक पेंशन शुरू करना या रुकी हुई पेंशन फिर से चालू करना।",
+    "en": "Start or restart monthly pension for elderly and widow citizens."
+  },
+  "fields": [
+    {
+      "key": "full_name",
+      "source": "PROFILE",
+      "profile_key": "fullName",
+      "label": {
+        "mr": "पूर्ण नाव",
+        "hi": "पूरा नाम",
+        "en": "Full Name"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "dob",
+      "source": "PROFILE",
+      "profile_key": "dob",
+      "label": {
+        "mr": "जन्मतारीख",
+        "hi": "जन्म तिथि",
+        "en": "Date of Birth"
+      },
+      "sensitive": false,
+      "type": "date",
+      "required": true
+    },
+    {
+      "key": "age_years",
+      "source": "DERIVED",
+      "derive_from": "dob",
+      "label": {
+        "mr": "वय (वर्षे)",
+        "hi": "आयु (वर्ष)",
+        "en": "Age (Years)"
+      },
+      "sensitive": false,
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "gender",
+      "source": "PROFILE",
+      "profile_key": "gender",
+      "label": {
+        "mr": "लिंग",
+        "hi": "लिंग",
+        "en": "Gender"
+      },
+      "sensitive": false,
+      "type": "enum",
+      "options": ["Female", "Male", "Other"],
+      "required": true
+    },
+    {
+      "key": "pension_subtype",
+      "source": "ASK_CITIZEN",
+      "label": {
+        "mr": "पेन्शन प्रकार (वृद्धापकाळ / विधवा)",
+        "hi": "पेंशन प्रकार (वृद्धावस्था / विधवा)",
+        "en": "Pension Subtype (Old Age / Widow)"
+      },
+      "sensitive": false,
+      "type": "enum",
+      "options": ["old_age_pension", "widow_pension"],
+      "required": true
+    },
+    {
+      "key": "aadhaar_masked",
+      "source": "DOCUMENT",
+      "document_key": "aadhaar_card",
+      "label": {
+        "mr": "आधार क्रमांक (मास्क केलेला)",
+        "hi": "आधार संख्या (मास्क किया गया)",
+        "en": "Aadhaar Number (Masked)"
+      },
+      "sensitive": true,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "mobile",
+      "source": "PROFILE",
+      "profile_key": "mobileMasked",
+      "label": {
+        "mr": "मोबाईल क्रमांक (मास्क केलेला)",
+        "hi": "मोबाइल नंबर (मास्क किया गया)",
+        "en": "Mobile Number (Masked)"
+      },
+      "sensitive": true,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "address",
+      "source": "PROFILE",
+      "profile_key": "address",
+      "label": {
+        "mr": "निवासी पत्ता",
+        "hi": "निवास का पता",
+        "en": "Residential Address"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "district",
+      "source": "PROFILE",
+      "profile_key": "district",
+      "label": {
+        "mr": "जिल्हा",
+        "hi": "जिला",
+        "en": "District"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "bank_account_masked",
+      "source": "DOCUMENT",
+      "document_key": "bank_passbook",
+      "label": {
+        "mr": "बँक खाते क्रमांक (मास्क केलेला)",
+        "hi": "बैंक खाता संख्या (मास्क किया गया)",
+        "en": "Bank Account Number (Masked)"
+      },
+      "sensitive": true,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "ifsc",
+      "source": "DOCUMENT",
+      "document_key": "bank_passbook",
+      "label": {
+        "mr": "IFSC कोड",
+        "hi": "IFSC कोड",
+        "en": "IFSC Code"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "life_certificate_id",
+      "source": "DOCUMENT",
+      "document_key": "life_certificate",
+      "label": {
+        "mr": "हयातीचा दाखला क्रमांक (जीवन प्रमाण)",
+        "hi": "जीवन प्रमाण पत्र संख्या",
+        "en": "Life Certificate ID (Jeevan Pramaan)"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "disbursement_mode",
+      "source": "DEFAULT",
+      "default_value": "DBT_BANK_TRANSFER",
+      "label": {
+        "mr": "पेन्शन वितरण पद्धत",
+        "hi": "पेंशन वितरण माध्यम",
+        "en": "Pension Disbursement Mode"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "application_id",
+      "source": "PORTAL_GENERATED",
+      "label": {
+        "mr": "अर्ज क्रमांक (Application ID)",
+        "hi": "आवेदन संख्या (Application ID)",
+        "en": "Application ID"
+      },
+      "sensitive": false,
+      "type": "string",
+      "required": false
+    }
+  ],
+  "documents": [
+    {
+      "key": "aadhaar_card",
+      "label": {
+        "mr": "आधार कार्ड",
+        "hi": "आधार कार्ड",
+        "en": "Aadhaar Card"
+      },
+      "mandatory": true
+    },
+    {
+      "key": "age_proof",
+      "label": {
+        "mr": "वयाचा पुरावा (शाळा सोडल्याचा दाखला / जन्म दाखला)",
+        "hi": "आयु प्रमाण पत्र (जन्म प्रमाण / स्कूल प्रमाण पत्र)",
+        "en": "Age Proof Certificate"
+      },
+      "mandatory": true
+    },
+    {
+      "key": "bank_passbook",
+      "label": {
+        "mr": "बँक पासबुक प्रत",
+        "hi": "बैंक पासबुक की प्रति",
+        "en": "Bank Passbook Copy"
+      },
+      "mandatory": true
+    },
+    {
+      "key": "life_certificate",
+      "label": {
+        "mr": "हयातीचा दाखला (जीवन प्रमाण पत्र)",
+        "hi": "जीवन प्रमाण पत्र (Life Certificate)",
+        "en": "Life Certificate (Jeevan Pramaan)"
+      },
+      "mandatory": true,
+      "max_age_days": 365
+    },
+    {
+      "key": "death_certificate_husband",
+      "label": {
+        "mr": "पतीचा मृत्यू दाखला (विधवा पेन्शनसाठी)",
+        "hi": "पति का मृत्यु प्रमाण पत्र (विधवा पेंशन हेतु)",
+        "en": "Husband's Death Certificate (For Widow Pension)"
+      },
+      "mandatory": false,
+      "required_if": {
+        "field": "pension_subtype",
+        "operator": "equals",
+        "value": "widow_pension"
+      }
+    }
+  ],
+  "steps": [
+    { "step": 1, "status": "LANGUAGE_SELECTED", "phase": "SAMAJHNA", "label": { "mr": "भाषा निवडली", "hi": "भाषा चुनी गई", "en": "Language Selected" } },
+    { "step": 2, "status": "INTAKE", "phase": "SAMAJHNA", "label": { "mr": "समस्या नोंदणी", "hi": "समस्या दर्ज", "en": "Problem Intake" } },
+    { "step": 3, "status": "CLARIFYING", "phase": "SAMAJHNA", "label": { "mr": "स्पष्टीकरण प्रश्न", "hi": "स्पष्टीकरण प्रश्न", "en": "Clarifying Question" } },
+    { "step": 4, "status": "SERVICE_CONFIRMED", "phase": "SAMAJHNA", "label": { "mr": "सेवा निश्चित", "hi": "सेवा की पुष्टि", "en": "Service Confirmed" } },
+    { "step": 5, "status": "CONSENT_PENDING", "phase": "SAMAJHNA", "label": { "mr": "संमती प्रलंबित (गेट १)", "hi": "सहमति लंबित (गेट 1)", "en": "Consent Pending (Gate 1)" } },
+    { "step": 6, "status": "CONSENTED", "phase": "SAMAJHNA", "label": { "mr": "संमती दिली (गेट १)", "hi": "सहमति दी गई (गेट 1)", "en": "Consent Given (Gate 1)" } },
+    { "step": 7, "status": "PROFILE_SAVE_CONSENT", "phase": "KARNA", "label": { "mr": "प्रोफाइल जतन पसंती", "hi": "प्रोफ़ाइल सेव विकल्प", "en": "Profile Save Preference" } },
+    { "step": 8, "status": "DOCS_CHECKLIST", "phase": "KARNA", "label": { "mr": "कागदपत्र यादी", "hi": "दस्तावेज़ सूची", "en": "Documents Checklist" } },
+    { "step": 9, "status": "DOCS_READY", "phase": "KARNA", "label": { "mr": "कागदपत्रे तयार", "hi": "दस्तावेज़ तैयार", "en": "Documents Verified & Ready" } },
+    { "step": 10, "status": "FORM_FILLED", "phase": "KARNA", "label": { "mr": "मसुदा अर्ज तयार (DRAFT)", "hi": "ड्राफ्ट फॉर्म तैयार (DRAFT)", "en": "Draft Form Filled (DRAFT)" } },
+    { "step": 11, "status": "APPROVED", "phase": "KARNA", "label": { "mr": "अंतिम मंजुरी (गेट २)", "hi": "अंतिम मंजूरी (गेट 2)", "en": "Citizen Approved (Gate 2)" } },
+    { "step": 12, "status": "SUBMITTED", "phase": "PEECHA_KARNA", "label": { "mr": "अर्ज सादर केला", "hi": "आवेदन जमा किया गया", "en": "Application Submitted" } },
+    { "step": 13, "status": "TRACKING", "phase": "PEECHA_KARNA", "label": { "mr": "स्थिती मागोवा", "hi": "स्थिति ट्रैकिंग", "en": "Status Tracking" } },
+    { "step": 14, "status": "QUERY_RAISED", "phase": "PEECHA_KARNA", "label": { "mr": "कार्यालयाची विचारणा (दिवस १०)", "hi": "कार्यालय का सवाल (दिन 10)", "en": "Office Query Raised (Day 10)" } },
+    { "step": 15, "status": "STALLED", "phase": "PEECHA_KARNA", "label": { "mr": "अर्ज थांबलेला (७ दिवस)", "hi": "आवेदन रुका हुआ (7 दिन)", "en": "Application Stalled (7 Days)" } },
+    { "step": 16, "status": "CLOSED", "phase": "PEECHA_KARNA", "label": { "mr": "पेन्शन पुन्हा सुरू (प्रकरण पूर्ण)", "hi": "पेंशन फिर चालू (केस पूर्ण)", "en": "Pension Restarted (Case Closed)" } }
+  ],
+  "portal": {
+    "start_path": "/portal/pension/apply",
+    "pages": [
+      {
+        "page_id": "applicant_details",
+        "title": "Applicant & Pension Details",
+        "next_selector": "#btn-next-bank",
+        "fields": [
+          { "key": "full_name", "selector": "#input-full-name", "source": "PROFILE" },
+          { "key": "dob", "selector": "#input-dob", "source": "PROFILE" },
+          { "key": "age_years", "selector": "#input-age-years", "source": "DERIVED" },
+          { "key": "gender", "selector": "#select-gender", "source": "PROFILE" },
+          { "key": "pension_subtype", "selector": "#select-pension-subtype", "source": "ASK_CITIZEN" },
+          { "key": "aadhaar_masked", "selector": "#input-aadhaar", "source": "DOCUMENT" },
+          { "key": "mobile", "selector": "#input-mobile", "source": "PROFILE" },
+          { "key": "address", "selector": "#textarea-address", "source": "PROFILE" },
+          { "key": "district", "selector": "#select-district", "source": "PROFILE" }
+        ]
+      },
+      {
+        "page_id": "bank_and_certificates",
+        "title": "Bank & Life Certificate Details",
+        "fields": [
+          { "key": "bank_account_masked", "selector": "#input-bank-account", "source": "DOCUMENT" },
+          { "key": "ifsc", "selector": "#input-ifsc", "source": "DOCUMENT" },
+          { "key": "life_certificate_id", "selector": "#input-life-cert-id", "source": "DOCUMENT" },
+          { "key": "disbursement_mode", "selector": "#select-disbursement-mode", "source": "DEFAULT" }
+        ]
+      }
+    ],
+    "uploads": {
+      "#upload-aadhaar": "aadhaar_card",
+      "#upload-age-proof": "age_proof",
+      "#upload-bank-passbook": "bank_passbook",
+      "#upload-life-certificate": "life_certificate",
+      "#upload-death-certificate": "death_certificate_husband"
+    },
+    "submit_selector": "#btn-submit-pension-application",
+    "submit": "#btn-submit-pension-application",
+    "result_selector": "#application-id-result"
+  },
+  "tracking": {
+    "stall_after_days": 7,
+    "check_every_hours": 6
+  },
+  "office_call": {
+    "department": "Social Justice & Special Assistance Pension Cell, Pune",
+    "phone": "1800-111-555",
+    "may_say": ["application_id", "name"],
+    "never_say": ["aadhaar", "otp", "password", "account_number"]
+  }
+}
+

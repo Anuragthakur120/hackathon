@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nagarsathi.gov.in/schemas/service-catalog.json",
+  "title": "NagarSathi Service Catalog Schema",
+  "type": "object",
+  "required": [
+    "id",
+    "code",
+    "department",
+    "name",
+    "description",
+    "fields",
+    "documents",
+    "steps",
+    "portal",
+    "tracking",
+    "office_call"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "enum": ["pension", "scholarship", "ration_card"]
+    },
+    "code": {
+      "type": "string",
+      "minLength": 3
+    },
+    "department": {
+      "type": "object",
+      "required": ["mr", "hi", "en"],
+      "properties": {
+        "mr": { "type": "string", "minLength": 1 },
+        "hi": { "type": "string", "minLength": 1 },
+        "en": { "type": "string", "minLength": 1 }
+      }
+    },
+    "name": {
+      "type": "object",
+      "required": ["mr", "hi", "en"],
+      "properties": {
+        "mr": { "type": "string", "minLength": 1 },
+        "hi": { "type": "string", "minLength": 1 },
+        "en": { "type": "string", "minLength": 1 }
+      }
+    },
+    "description": {
+      "type": "object",
+      "required": ["mr", "hi", "en"],
+      "properties": {
+        "mr": { "type": "string", "minLength": 1 },
+        "hi": { "type": "string", "minLength": 1 },
+        "en": { "type": "string", "minLength": 1 }
+      }
+    },
+    "fields": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["key", "source", "label", "sensitive", "type", "required"],
+        "properties": {
+          "key": { "type": "string", "minLength": 1 },
+          "source": {
+            "type": "string",
+            "enum": [
+              "PROFILE",
+              "DOCUMENT",
+              "ASK_CITIZEN",
+              "DERIVED",
+              "DEFAULT",
+              "PORTAL_GENERATED"
+            ]
+          },
+          "label": {
+            "type": "object",
+            "required": ["mr", "hi", "en"],
+            "properties": {
+              "mr": { "type": "string", "minLength": 1 },
+              "hi": { "type": "string", "minLength": 1 },
+              "en": { "type": "string", "minLength": 1 }
+            }
+          },
+          "sensitive": { "type": "boolean" },
+          "type": {
+            "type": "string",
+            "enum": ["string", "number", "date", "enum", "boolean"]
+          },
+          "required": { "type": "boolean" },
+          "default_value": {},
+          "derive_from": { "type": "string" },
+          "document_key": { "type": "string" },
+          "profile_key": { "type": "string" },
+          "options": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "documents": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["key", "label", "mandatory"],
+        "properties": {
+          "key": { "type": "string", "minLength": 1 },
+          "label": {
+            "type": "object",
+            "required": ["mr", "hi", "en"],
+            "properties": {
+              "mr": { "type": "string", "minLength": 1 },
+              "hi": { "type": "string", "minLength": 1 },
+              "en": { "type": "string", "minLength": 1 }
+            }
+          },
+          "mandatory": { "type": "boolean" },
+          "max_age_days": { "type": "integer", "minimum": 1 },
+          "required_if": {
+            "type": "object",
+            "required": ["field", "operator", "value"],
+            "properties": {
+              "field": { "type": "string", "minLength": 1 },
+              "operator": {
+                "type": "string",
+                "enum": ["equals", "not_equals", "less_than", "greater_than", "in"]
+              },
+              "value": {}
+            }
+          }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 16,
+      "items": {
+        "type": "object",
+        "required": ["step", "status", "phase", "label"],
+        "properties": {
+          "step": { "type": "integer", "minimum": 1, "maximum": 16 },
+          "status": { "type": "string", "minLength": 1 },
+          "phase": {
+            "type": "string",
+            "enum": ["SAMAJHNA", "KARNA", "PEECHA_KARNA"]
+          },
+          "label": {
+            "type": "object",
+            "required": ["mr", "hi", "en"],
+            "properties": {
+              "mr": { "type": "string", "minLength": 1 },
+              "hi": { "type": "string", "minLength": 1 },
+              "en": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "portal": {
+      "type": "object",
+      "required": [
+        "start_path",
+        "pages",
+        "uploads",
+        "submit_selector",
+        "result_selector"
+      ],
+      "properties": {
+        "start_path": { "type": "string", "minLength": 1 },
+        "pages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["page_id", "fields"],
+            "properties": {
+              "page_id": { "type": "string", "minLength": 1 },
+              "title": { "type": "string" },
+              "next_selector": { "type": "string" },
+              "fields": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["key", "selector", "source"],
+                  "properties": {
+                    "key": { "type": "string", "minLength": 1 },
+                    "selector": { "type": "string", "minLength": 1 },
+                    "source": {
+                      "type": "string",
+                      "enum": [
+                        "PROFILE",
+                        "DOCUMENT",
+                        "ASK_CITIZEN",
+                        "DERIVED",
+                        "DEFAULT",
+                        "PORTAL_GENERATED"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "uploads": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "string" }
+        },
+        "submit_selector": { "type": "string", "minLength": 1 },
+        "submit": { "type": "string", "minLength": 1 },
+        "result_selector": { "type": "string", "minLength": 1 }
+      }
+    },
+    "tracking": {
+      "type": "object",
+      "required": ["stall_after_days", "check_every_hours"],
+      "properties": {
+        "stall_after_days": { "type": "integer", "const": 7 },
+        "check_every_hours": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "office_call": {
+      "type": "object",
+      "required": ["department", "may_say", "never_say"],
+      "properties": {
+        "department": { "type": "string", "minLength": 1 },
+        "phone": { "type": "string" },
+        "may_say": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "string" }
+        },
+        "never_say": {
+          "type": "array",
+          "minItems": 4,
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}
+
