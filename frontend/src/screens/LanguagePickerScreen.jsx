@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../state/AppContext.jsx';
 import { SUPPORTED_LANGUAGES } from '../i18n/index.js';
 import { checkVoiceSupport, playFixedAudioOrSpeak } from '../voice/speak.js';
+import { LanguageSwitcher } from '../components/LanguageSwitcher.jsx';
 
 export function LanguagePickerScreen() {
   const { language, setLanguage, t } = useApp();
   const navigate = useNavigate();
   const [voiceCheck, setVoiceCheck] = useState(() =>
-    checkVoiceSupport('mr-IN')
+    checkVoiceSupport(language)
   );
   const [testedOnce, setTestedOnce] = useState(false);
 
@@ -20,13 +21,13 @@ export function LanguagePickerScreen() {
   };
 
   const handleRunVoiceTest = () => {
-    const result = checkVoiceSupport('mr-IN');
+    const result = checkVoiceSupport(language);
     setVoiceCheck(result);
     setTestedOnce(true);
     playFixedAudioOrSpeak(
       'welcome',
       'नमस्कार रमाबाई, नगरसाथीमध्ये तुमचे स्वागत आहे. आपली मराठी आवाज तपासणी सुरू आहे.',
-      { lang: 'mr-IN' }
+      { lang: language }
     );
   };
 
@@ -35,22 +36,29 @@ export function LanguagePickerScreen() {
       className="ns-card ns-lang-picker-screen"
       aria-labelledby="lang-picker-heading"
     >
-      <div className="ns-card-top-row">
+      <div className="ns-card-top-row flex-wrap gap-2">
         <div className="ns-badge" data-testid="active-lang-badge">
           {t('activeLanguageBadge')}
         </div>
-        <button
-          type="button"
-          className="ns-btn ns-speaker-btn"
-          data-testid="sunao-picker-btn"
-          onClick={() =>
-            playFixedAudioOrSpeak('welcome', t('languagePickerSubtitle'), {
-              lang: language,
-            })
-          }
-        >
-          {t('sunaoBtn')}
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <LanguageSwitcher
+            navTestId="landing-lang-switcher"
+            triggerTestId="landing-lang-trigger"
+            menuTestId="landing-lang-menu"
+          />
+          <button
+            type="button"
+            className="ns-btn ns-speaker-btn"
+            data-testid="sunao-picker-btn"
+            onClick={() =>
+              playFixedAudioOrSpeak('welcome', t('languagePickerSubtitle'), {
+                lang: language,
+              })
+            }
+          >
+            {t('sunaoBtn')}
+          </button>
+        </div>
       </div>
 
       <h1 id="lang-picker-heading" className="ns-title">
@@ -76,8 +84,15 @@ export function LanguagePickerScreen() {
               aria-pressed={isSelected}
               onClick={() => handleSelectLanguage(item.code)}
             >
-              <span className="ns-huge-lang-native">{item.nativeLabel}</span>
-              <span className="ns-huge-lang-code">{item.code}</span>
+              <span className="ns-huge-lang-native">
+                {item.nativeLabel}{' '}
+                <span className="text-sm font-medium opacity-80">
+                  ({item.englishName})
+                </span>
+              </span>
+              <span className="ns-huge-lang-code">
+                {isSelected ? `✓ ${item.code}` : item.code}
+              </span>
             </button>
           );
         })}

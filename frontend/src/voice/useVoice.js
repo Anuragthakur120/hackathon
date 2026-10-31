@@ -6,6 +6,7 @@ import {
   formatSpeechText,
 } from './speak.js';
 import { matchVoiceCommand, VOICE_COMMAND } from './commands.js';
+import { toBcp47Lang } from '../i18n/index.js';
 
 export const DEFAULT_SPEECH_RATE = 0.85;
 export const SLOW_SPEECH_RATE = 0.65;
@@ -37,7 +38,7 @@ export function createMicController({
   const startMic = () => {
     if (rec && !isListening && !isSpeaking) {
       isListening = true;
-      rec.lang = lang;
+      rec.lang = toBcp47Lang(lang);
       if (typeof rec.start === 'function') {
         rec.start();
       }
@@ -170,7 +171,7 @@ export function useVoice({
 
     try {
       const rec = new SpeechRec();
-      rec.lang = language;
+      rec.lang = toBcp47Lang(language);
       rec.continuous = false;
       rec.interimResults = false;
 

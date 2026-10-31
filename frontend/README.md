@@ -3,7 +3,9 @@
 > **Slogan:** *"Jo padh nahi sakta, wo bhi sab kuch kar sakta hai."*
 > **Demo Persona:** Ramabai Kulkarni (Age 68, Elderly Widow, Old-Age Pension Stopped, Speaks Marathi `mr-IN`)
 
-Mobile-first, high-contrast, multilingual (`mr-IN` default, `hi-IN`, `en-IN`) React + Vite frontend for **NagarSathi (CITY-02)**. Designed for low-literacy and elderly citizens with touch targets `>= 56px`, automatic voice guidance (`Apne aap bolo`), `"Sunao"` (`🔊`) buttons on every card/message/status, and two mandatory human gates (**Gate 1: Consent**, **Gate 2: Physical Approval before Submit**).
+Mobile-first, high-contrast, 7-language (`en` / `en-IN` default, `hi` / `hi-IN`, `mr` / `mr-IN`, `gu` / `gu-IN`, `bn` / `bn-IN`, `ta` / `ta-IN`, `te` / `te-IN`) React + Vite frontend for **NagarSathi (CITY-02)**. Designed for low-literacy and elderly citizens with touch targets `>= 56px`, automatic voice guidance (`Apne aap bolo`), `"Sunao"` (`🔊`) buttons on every card/message/status, and two mandatory human gates (**Gate 1: Consent**, **Gate 2: Physical Approval before Submit**).
+
+> **Localization & Native Review Note (Module UI-1):** All 7 language bundles (`src/i18n/{en,hi,mr,gu,bn,ta,te}.json`) are AI-drafted for rapid prototyping. **A native speaker for each language (Hindi, Marathi, Gujarati, Bengali, Tamil, Telugu) should review the translations for regional tone and terminology before the live demo.** Missing keys automatically fall back to English (`en.json`).
 
 ---
 

@@ -169,10 +169,10 @@ describe('Module F1: Frontend Foundation, i18n, Mock API & Safety State Machine'
       </MemoryRouter>
     );
 
-    // Default language is Marathi (mr-IN)
-    expect(screen.getByRole('heading', { name: mr.languagePickerTitle })).toBeInTheDocument();
+    // Default language on first load is English (en-IN)
+    expect(screen.getByRole('heading', { name: en.languagePickerTitle })).toBeInTheDocument();
     expect(screen.getByTestId('picker-lang-mr')).toHaveTextContent('मराठी');
-    expect(screen.getByTestId('picker-lang-hi')).toHaveTextContent('हिंदी');
+    expect(screen.getByTestId('picker-lang-hi')).toHaveTextContent('हिन्दी');
     expect(screen.getByTestId('picker-lang-en')).toHaveTextContent('English');
     expect(screen.getByTestId('prototype-footer')).toHaveTextContent(
       'Prototype. Mock portal. Demo data only.'
@@ -183,7 +183,12 @@ describe('Module F1: Frontend Foundation, i18n, Mock API & Safety State Machine'
     expect(screen.getByRole('heading', { name: hi.languagePickerTitle })).toBeInTheDocument();
     expect(window.localStorage.getItem('nagarsathi_lang')).toBe('hi-IN');
 
-    // Switch to English
+    // Switch to Marathi
+    fireEvent.click(screen.getByTestId('picker-lang-mr'));
+    expect(screen.getByRole('heading', { name: mr.languagePickerTitle })).toBeInTheDocument();
+    expect(window.localStorage.getItem('nagarsathi_lang')).toBe('mr-IN');
+
+    // Switch back to English
     fireEvent.click(screen.getByTestId('picker-lang-en'));
     expect(screen.getByRole('heading', { name: en.languagePickerTitle })).toBeInTheDocument();
     expect(window.localStorage.getItem('nagarsathi_lang')).toBe('en-IN');

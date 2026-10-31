@@ -340,10 +340,14 @@ const COPY = {
 
 function getCopy(lang, key) {
   const normalized = normalizeLangCode(lang);
-  return (COPY[normalized] && COPY[normalized][key]) || COPY['mr-IN'][key];
+  return (
+    (COPY[normalized] && COPY[normalized][key]) ||
+    COPY['en-IN'][key] ||
+    COPY['mr-IN'][key]
+  );
 }
 
-let mockStore = createInitialCaseState('mr-IN');
+let mockStore = createInitialCaseState('en-IN');
 let unknownAttempts = 0;
 
 export const DEFAULT_CHECKLIST = [
@@ -435,7 +439,8 @@ export const mockApi = {
   },
 
   async requestOtp({ phone = '9876543210', language = mockStore.language } = {}) {
-    const c = getCopy(language, 'otpSent');
+    const lang = normalizeLangCode(language);
+    const c = getCopy(lang, 'otpSent');
     const last4 = String(phone).slice(-4);
     return {
       display: c.display,
@@ -444,6 +449,7 @@ export const mockApi = {
         phoneMasked: `XXXXXX${last4}`,
         otpSent: true,
         mode: 'mock',
+        language: lang,
       },
     };
   },
@@ -1053,6 +1059,7 @@ export const mockApi = {
         caseId: mockStore.id,
         status: mockStore.status,
         reset: true,
+        language: lang,
       },
     };
   },

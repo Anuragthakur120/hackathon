@@ -1,3 +1,5 @@
+import { toBcp47Lang } from '../i18n/index.js';
+
 let voices = [];
 
 function getSynth() {
@@ -26,14 +28,16 @@ if (initialSynth) {
   initialSynth.onvoiceschanged = loadVoices;
 }
 
-export function pickVoice(lang = 'mr-IN', availableVoices) {
+export function pickVoice(lang = 'en-IN', availableVoices) {
+  const bcp47 = toBcp47Lang(lang);
   const list = Array.isArray(availableVoices) ? availableVoices : loadVoices();
   if (!list.length) return null;
-  const prefix = String(lang).split('-')[0];
+  const prefix = String(bcp47).split('-')[0];
   return (
-    list.find((v) => v.lang === lang) ||
+    list.find((v) => v.lang === bcp47) ||
     list.find((v) => v.lang && v.lang.startsWith(prefix)) ||
-    list.find((v) => v.lang === 'hi-IN') || // Marathi missing -> Hindi fallback
+    list.find((v) => v.lang === 'hi-IN') || // Marathi/Indian missing -> Hindi fallback
+    list.find((v) => v.lang === 'en-IN') ||
     null
   );
 }
@@ -65,8 +69,9 @@ export function splitIntoSentences(text = '') {
 
 export function speak(
   text,
-  { lang = 'mr-IN', rate = 0.85, onStart, onEnd } = {}
+  { lang = 'en-IN', rate = 0.85, onStart, onEnd } = {}
 ) {
+  const bcp47 = toBcp47Lang(lang);
   const synth = getSynth();
   if (!synth || !text) {
     if (typeof onStart === 'function') onStart();
@@ -97,9 +102,9 @@ export function speak(
 
   const utterances = parts.map((p, i) => {
     const u = new UtteranceCtor(p);
-    u.lang = lang;
+    u.lang = bcp47;
     u.rate = rate;
-    const v = pickVoice(lang);
+    const v = pickVoice(bcp47);
     if (v) u.voice = v;
     if (i === parts.length - 1 && typeof onEnd === 'function') {
       u.onend = onEnd;

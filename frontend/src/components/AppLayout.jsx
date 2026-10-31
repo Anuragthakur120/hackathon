@@ -1,10 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '../state/AppContext.jsx';
-import { SUPPORTED_LANGUAGES } from '../i18n/index.js';
 import { getMacroPhase, MACRO_PHASES } from '../state/caseMachine.js';
+import { LanguageSwitcher } from './LanguageSwitcher.jsx';
 
 export function AppLayout({ children }) {
-  const { language, setLanguage, t, caseState } = useApp();
+  const { t, caseState } = useApp();
   const location = useLocation();
   const activePhase = getMacroPhase(caseState.status);
 
@@ -44,33 +44,14 @@ export function AppLayout({ children }) {
           <p className="ns-brand-slogan">{t('slogan')}</p>
         </div>
 
-        <nav
-          className="ns-lang-switcher"
-          aria-label={t('headerLanguageLabel')}
-          data-testid="header-lang-nav"
-        >
-          {SUPPORTED_LANGUAGES.map((langItem) => {
-            const isActive = language === langItem.code;
-            return (
-              <button
-                key={langItem.code}
-                type="button"
-                data-testid={`header-lang-${langItem.shortCode}`}
-                className={`ns-btn ns-lang-chip ${isActive ? 'ns-lang-chip-active' : ''}`}
-                aria-pressed={isActive}
-                aria-label={`${t('headerLanguageLabel')}: ${langItem.nativeLabel}`}
-                onClick={() => setLanguage(langItem.code)}
-              >
-                {langItem.nativeLabel}
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-2 flex-wrap">
+          <LanguageSwitcher navTestId="header-lang-nav" />
           {location.pathname !== '/' && (
             <Link to="/" className="ns-btn ns-btn-outline">
               {t('changeLanguage')}
             </Link>
           )}
-        </nav>
+        </div>
       </header>
 
       <section

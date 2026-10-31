@@ -7,6 +7,7 @@
   "slogan": "Even those who cannot read can accomplish everything.",
   "sloganOriginal": "Jo padh nahi sakta, wo bhi sab kuch kar sakta hai.",
   "headerLanguageLabel": "Change Language",
+  "changeLanguageLabel": "Switch Language",
   "activeLanguageBadge": "Active Language: English (en-IN)",
   "languagePickerTitle": "Choose Your Language",
   "languagePickerSubtitle": "Tap one of the large buttons below to continue. Your chosen language is passed to speech recognition and voice output.",

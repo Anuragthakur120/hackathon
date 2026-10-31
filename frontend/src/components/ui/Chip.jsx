@@ -73,3 +73,4 @@ export function StatusBadge({ status = 'INTAKE', label, className = '', ...rest 
 }
 
 export default Chip;
+
