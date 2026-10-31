@@ -4,6 +4,7 @@ import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 import { AppLayout } from './components/AppLayout.jsx';
 import { LanguagePickerScreen } from './screens/LanguagePickerScreen.jsx';
 import { WorkflowShellScreen } from './screens/WorkflowShellScreen.jsx';
+import { StyleGuideScreen } from './screens/StyleGuideScreen.jsx';
 
 export function AppRoutes() {
   const { language } = useApp();
@@ -14,6 +15,7 @@ export function AppRoutes() {
         <Routes>
           <Route path="/" element={<LanguagePickerScreen />} />
           <Route path="/app" element={<WorkflowShellScreen />} />
+          <Route path="/dev/style-guide" element={<StyleGuideScreen />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AppLayout>
@@ -22,4 +24,3 @@ export function AppRoutes() {
 }
 
 export default AppRoutes;
-
