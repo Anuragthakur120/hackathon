@@ -47,6 +47,9 @@ function ensureRuntimeEnumSupport(schemaPath) {
 
 ensureRuntimeEnumSupport(Case.schema.path('status'));
 ensureRuntimeEnumSupport(Case.schema.path('history')?.schema?.path('status'));
+if (!Case.schema.path('draftUpdatedAt')) {
+  Case.schema.add({ draftUpdatedAt: { type: Date, default: null } });
+}
 
 /**
  * Gate 1 CAN / CANNOT lists recorded when citizen reviews consent.
@@ -249,3 +252,4 @@ export function transitionCase(
 
   return nextCase;
 }
+

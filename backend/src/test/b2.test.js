@@ -508,3 +508,4 @@ describe('Module B2: Case State Machine, Gate 1 & Gate 2 Guards, requireConsent(
     expect(recoveredFillRes.body.data.status).toBe('FORM_FILLED');
   });
 });
+

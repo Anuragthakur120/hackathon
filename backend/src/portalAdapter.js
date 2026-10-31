@@ -191,8 +191,12 @@ export async function withPortalRetry(
         result,
       };
     } catch (err) {
-      // Do not retry Gate 1 / Gate 2 authorization errors
-      if (err.code === 'APPROVAL_REQUIRED' || err.code === 'CONSENT_REQUIRED') {
+      // Do not retry Gate 1 / Gate 2 authorization errors or already-retried robot errors
+      if (
+        err.code === 'APPROVAL_REQUIRED' ||
+        err.code === 'CONSENT_REQUIRED' ||
+        err.code === 'PORTAL_FAILED_AFTER_3_RETRIES'
+      ) {
         throw err;
       }
       lastError = err;
@@ -233,14 +237,35 @@ export async function submitCaseToPortal(
   caseDoc,
   { portalAdapter = defaultPortalAdapter } = {}
 ) {
-  if (
-    !caseDoc?.approval ||
-    caseDoc.approval.given !== true ||
-    caseDoc.approval.byPhysicalButton !== true
-  ) {
-    const err = new Error(
-      'Gate 2 Violation: submit() refused because case.approval.given !== true or physical confirmation button was not pressed'
-    );
+  const approval = caseDoc?.approval;
+  const hasApproval =
+    approval?.given === true && approval?.byPhysicalButton === true;
+  const approvalTime = approval?.at ? new Date(approval.at).getTime() : 0;
+  const draftTime = caseDoc?.draftUpdatedAt
+    ? new Date(caseDoc.draftUpdatedAt).getTime()
+    : 0;
+  const isStaleApproval = draftTime > 0 && approvalTime < draftTime;
+
+  if (!hasApproval || isStaleApproval) {
+    const reason = isStaleApproval
+      ? 'Draft was edited after approval; approval has been invalidated'
+      : 'case.approval.given !== true or physical confirmation button was not pressed';
+
+    enqueueAuditLog({
+      actor: 'SYSTEM',
+      action: 'PORTAL_SUBMIT_BLOCKED_GATE2',
+      caseId: caseDoc?.caseId || null,
+      userId: caseDoc?.userId ? String(caseDoc.userId) : null,
+      payload: {
+        hasApproval,
+        isStaleApproval,
+        approvalAt: approval?.at || null,
+        draftUpdatedAt: caseDoc?.draftUpdatedAt || null,
+        reason,
+      },
+    });
+
+    const err = new Error(`Gate 2 Violation: submit() refused because ${reason}`);
     err.code = 'APPROVAL_REQUIRED';
     err.statusCode = 403;
     throw err;
@@ -253,3 +278,4 @@ export async function submitCaseToPortal(
     userId: String(caseDoc.userId),
   });
 }
+

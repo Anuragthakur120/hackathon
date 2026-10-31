@@ -5,6 +5,8 @@ export * from './middleware.js';
 export * from './caseMachine.js';
 export * from './portalAdapter.js';
 export * from './consentMiddleware.js';
+export * from './portal-agent/robot.js';
+export * from '../mock-portal/app.js';
 export * from './routes/coreRoutes.js';
 export * from './routes/caseRoutes.js';
 export * from './app.js';

@@ -493,11 +493,18 @@ export function createCaseRouter({ portalAdapter = defaultPortalAdapter } = {}) 
           }
         );
 
+        const draftUpdatedAt = new Date();
         const nextCase = transitionCase(caseDoc, 'FORM_FILLED', {
           actor: 'AGENT',
           note: 'Filled portal form as DRAFT (not submitted)',
           patch: {
             draftFields,
+            draftUpdatedAt,
+            approval: {
+              given: false,
+              at: null,
+              byPhysicalButton: false,
+            },
           },
         });
         const saved = await persistCaseUpdate(nextCase);
@@ -509,6 +516,7 @@ export function createCaseRouter({ portalAdapter = defaultPortalAdapter } = {}) 
           data: {
             caseId: saved.caseId,
             status: saved.status,
+            draftUpdatedAt: saved.draftUpdatedAt,
             draft: {
               isDraft: true,
               serviceId: saved.service,
@@ -531,6 +539,94 @@ export function createCaseRouter({ portalAdapter = defaultPortalAdapter } = {}) 
             },
           });
         }
+        return next(err);
+      }
+    }
+  );
+
+  // ==========================================================================
+  // 6b. Edit Draft Fields (PATCH /cases/:caseId/draft)
+  //     Editing the draft after approval invalidates approval!
+  // ==========================================================================
+  router.patch(
+    '/cases/:caseId/draft',
+    requireCitizenAuth,
+    requireConsent('fill'),
+    async (req, res, next) => {
+      try {
+        const caseDoc = req.caseDoc;
+        const updates = req.body?.fields || {};
+        const hadApproval = Boolean(caseDoc.approval?.given);
+
+        const updatedDraftFields = (caseDoc.draftFields || []).map((f) => {
+          if (f.key in updates) {
+            return {
+              ...f,
+              value: updates[f.key],
+              maskedValue: String(updates[f.key]),
+            };
+          }
+          return f;
+        });
+
+        for (const [k, v] of Object.entries(updates)) {
+          if (!updatedDraftFields.some((f) => f.key === k)) {
+            updatedDraftFields.push({
+              key: k,
+              value: v,
+              maskedValue: String(v),
+              source: 'ASK_CITIZEN',
+              sensitive: false,
+            });
+          }
+        }
+
+        const draftUpdatedAt = new Date(Date.now() + 5);
+        const nextCase = transitionCase(caseDoc, 'FORM_FILLED', {
+          actor: 'CITIZEN',
+          note: hadApproval
+            ? 'Citizen edited draft after approval; Gate 2 approval invalidated'
+            : 'Citizen edited draft fields',
+          patch: {
+            draftFields: updatedDraftFields,
+            draftUpdatedAt,
+            approval: {
+              given: false,
+              at: null,
+              byPhysicalButton: false,
+            },
+          },
+        });
+        const saved = await persistCaseUpdate(nextCase);
+
+        if (hadApproval) {
+          enqueueAuditLog({
+            actor: 'SYSTEM',
+            action: 'APPROVAL_INVALIDATED_BY_DRAFT_EDIT',
+            caseId: saved.caseId,
+            userId: req.user.id,
+            payload: {
+              draftUpdatedAt,
+              previousStatus: caseDoc.status,
+              newStatus: saved.status,
+            },
+          });
+        }
+
+        return res.status(200).json({
+          display:
+            'मसुदा अद्ययावत केला आहे. कृपया पुन्हा तपासून अंतिम मंजुरी (गेट २) द्या.',
+          speech: 'ड्राफ्ट बदलला आहे. कृपया पुन्हा मंजुरी द्या.',
+          data: {
+            caseId: saved.caseId,
+            status: saved.status,
+            approvalInvalidated: hadApproval,
+            approval: saved.approval,
+            draftUpdatedAt: saved.draftUpdatedAt,
+            draftFields: saved.draftFields,
+          },
+        });
+      } catch (err) {
         return next(err);
       }
     }
@@ -1149,3 +1245,4 @@ export function createCaseRouter({ portalAdapter = defaultPortalAdapter } = {}) 
 
   return router;
 }
+

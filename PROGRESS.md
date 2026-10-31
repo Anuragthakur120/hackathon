@@ -62,23 +62,28 @@ This file tracks module-by-module progress, verification checklists, architectur
 
 ## Module B2: Backend Case State Machine, Guards & Mock Portal
 
-### What Was Built
-- **16-Step Case State Machine (`backend/src/caseMachine.js`)**:
-  - Enforces legal transitions across `INTAKE -> SERVICE_CONFIRMED -> CONSENTED -> DOCS_COLLECTING -> DOCS_READY -> FORM_FILLED -> APPROVED -> SUBMITTED -> TRACKING -> QUERY_RAISED -> STALLED -> CALLED -> TRACKING -> CLOSED`.
-  - Rejects illegal transitions (`409 ILLEGAL_CASE_TRANSITION`) and logs an `AuditLog` entry on every transition.
-- **Gate 1 (Consent) & `requireConsent(scope)` Middleware (`backend/src/consentMiddleware.js`, `backend/src/routes/caseRoutes.js`)**:
-  - Records `GATE1_PERMISSIONS` (`canDo` / `cannotDo`).
-  - Consent `NO` halts the flow and deletes the uncommitted case so nothing is saved.
-  - Separate `saveProfileConsent` stored independently from `caseConsent`.
-  - `requireConsent(scope)` blocks `upload`, `fill`, `submit`, and `call` with `403 CONSENT_REQUIRED` + audit entry when consent is missing.
-- **Gate 2 (Approval) & Portal Adapter + Retry x3 (`backend/src/portalAdapter.js`, `backend/src/routes/caseRoutes.js`)**:
-  - `submitCaseToPortal()` throws `APPROVAL_REQUIRED` unless `case.approval.given === true && case.approval.byPhysicalButton === true` (voice-only approval is never enough).
-  - `InMemoryPortalAdapter` implements `fillDraft`, `submit` (`PEN-2026-88213`), and `getStatus` (Day-10 query, +21-day stall, failure injection) wrapped in `withPortalRetry` (3 retries: `dobara koshish 1/3`, `2/3`, `3/3`).
-  - Time-skip endpoint (`POST /demo/skip-days` behind `DEMO_MODE` env flag) advances +21 days to trigger `STALLED`, and tracker scheduling sets `nextCheckAt` (+3 days) and loops back to `TRACKING` until `CLOSED`.
-
 ### Verification Checklist (B2)
+- [x] **All B2 checks & push**: PASS (`4fba5ea`, tag `B2-passed`)
+
+---
+
+## Module B3: Mock Portal Website + Playwright Portal Robot
+
+### What Was Built
+- **Server-Rendered Mock Government Portal (`backend/mock-portal/app.js`, `backend/mock-portal/server.js`)**:
+  - Standalone Express app (`PORTAL_PORT=4000`) serving server-rendered HTML for login (`/portal/login`), dashboard (`/portal`), and the 3 service applications matching D1 catalog selectors:
+    - Pension (`/portal/pension/apply`: 3 pages + file uploads + review + `#chk-confirm-declaration` + `#btn-submit-pension-application`).
+    - Scholarship (`/portal/scholarship/apply`: 1 sectioned page with all 14 fields + 5 uploads + `#btn-submit-scholarship-application`).
+    - Ration Card (`/portal/ration-card/apply`: 1 page with all 11 fields + 3 uploads + `#btn-submit-ration-application`).
+  - Status page (`/portal/status/:appId`) and `DEMO_MODE=true` admin endpoints (`/portal/admin/advance-clock`, `/portal/admin/status`, `/portal/admin/raise-query`, `/portal/admin/approve`, `/portal/admin/set-fail`, `/portal/admin/reset`).
+- **Playwright Portal Robot (`backend/src/portal-agent/robot.js`)**:
+  - Implements the B2 Portal Adapter interface (`fillDraft`, `submit`, `getStatus`), supports `HEADED` env switch, reads selectors from D1 catalogs, fills all pages as a DRAFT (`FORM_FILLED`), and writes step screenshots into `backend/storage/screenshots/` (gitignored).
+  - Types values from the database by code; never sends values or secrets to logs, screenshot filenames, or LLM selector fallback payloads (which receive only `screenshotPath` and `fieldKeys`).
+  - Enforces fresh Gate 2 approval on `submit()` (`approval.given === true && approval.at >= draftUpdatedAt`), invalidating approval whenever the draft is edited after approval (`PATCH /cases/:caseId/draft`), and reads the Application ID from `#application-id-result`.
+
+### Verification Checklist (B3)
 - [x] **Install dependencies (`npm install`)**: PASS
-- [x] **Lint all workspaces (`npm run lint`)**: PASS (`eslint src --max-warnings=0`)
-- [x] **Regression (F1–F5, D1, B1) + B2 unit/API tests (`npm run test`)**: PASS (22 frontend + 5 database + 9 backend = 36/36 tests passed)
+- [x] **Lint all workspaces (`npm run lint`)**: PASS (`eslint src mock-portal --max-warnings=0`)
+- [x] **Regression (F1–F5, D1, B1, B2) + B3 unit/portal tests (`npm run test`)**: PASS (22 frontend + 5 database + 14 backend = 41/41 tests passed)
 - [x] **Build validation (`npm run build`)**: PASS
 - [x] **Secret scan (`npm run scan:secrets`)**: PASS

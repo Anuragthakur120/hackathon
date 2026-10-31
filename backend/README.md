@@ -1,4 +1,4 @@
-# `@nagarsathi/backend` — Express API Server, Citizen Auth, Privacy, Audit & 16-Step Case Engine
+# `@nagarsathi/backend` — Express API Server, Citizen Auth, Privacy, Audit, Case Engine & Playwright Portal Robot
 
 Node.js + Express backend for **NagarSathi (CITY-02)** integrated with `@nagarsathi/database`.
 
@@ -21,16 +21,25 @@ Node.js + Express backend for **NagarSathi (CITY-02)** integrated with `@nagarsa
    - Enforces legal transitions across `INTAKE -> CLARIFYING -> SERVICE_CONFIRMED -> CONSENTED -> DOCS_COLLECTING -> DOCS_READY -> FORM_FILLED -> APPROVED -> SUBMITTED -> TRACKING -> QUERY_RAISED -> STALLED -> CALLED -> TRACKING -> CLOSED`.
    - Rejects illegal transitions with HTTP `409 ILLEGAL_CASE_TRANSITION` and writes a background `AuditLog` entry on every transition.
 2. **Gate 1 (Consent) & `requireConsent(scope)` Middleware (`src/consentMiddleware.js`, `src/routes/caseRoutes.js`)**:
-   - Records `GATE1_PERMISSIONS` (`canDo` / `cannotDo`).
-   - If citizen answers `NO` (`given: false`), halts the flow (`CANCELLED`) and deletes the uncommitted case so nothing is saved.
-   - Stores `"save profile for next time"` (`saveProfileConsent`) independently from `caseConsent`.
-   - `requireConsent(scope)` guards `upload`, `fill`, `submit`, and `call` — returning `403 CONSENT_REQUIRED` plus an `AuditLog` entry when consent is missing.
+   - Records `GATE1_PERMISSIONS` (`canDo` / `cannotDo`), halts and deletes uncommitted cases when Consent is `NO`, stores `saveProfileConsent` independently, and guards `upload`, `fill`, `submit`, and `call` with `403 CONSENT_REQUIRED` + audit entry.
 3. **Gate 2 (Physical Approval) (`src/portalAdapter.js`, `src/routes/caseRoutes.js`)**:
-   - `submitCaseToPortal()` throws `APPROVAL_REQUIRED` (`403`) unless `case.approval.given === true && case.approval.byPhysicalButton === true`.
-   - Voice-only approval (`source: 'voice'` / `byPhysicalButton: false`) is never sufficient to transition to `APPROVED` or `SUBMITTED`.
-4. **Portal Adapter & Retry x3 Wrapper (`src/portalAdapter.js`)**:
-   - `InMemoryPortalAdapter` implements `fillDraft`, `submit` (returns `PEN-2026-88213`), and `getStatus` (Day-10 query, +21-day stall, failure injection).
-   - `withPortalRetry` retries portal calls 3 times (`dobara koshish 1/3`, `2/3`, `3/3`) before returning a clear `503` message with the draft intact.
-5. **Demo Time-Skip (`+21 din`) & Tracker Loopback (`src/routes/caseRoutes.js`)**:
-   - `POST /demo/skip-days` (behind `DEMO_MODE` env flag) advances 21 days and triggers `STALLED` (`7 din se ruka hai`).
-   - After simulated office call (`REF-5521`) or query document resubmission, sets `nextCheckAt` (+3 days) and loops back to `TRACKING` until approved (`CLOSED`).
+   - `submitCaseToPortal()` throws `APPROVAL_REQUIRED` (`403`) unless `case.approval.given === true && case.approval.byPhysicalButton === true` and `approval.at >= draftUpdatedAt`.
+
+---
+
+## 3. Module B3 Features (Mock Government Portal + Playwright Portal Robot)
+
+1. **Standalone Server-Rendered Mock Government Portal (`mock-portal/app.js`, `mock-portal/server.js`, `PORTAL_PORT=4000`)**:
+   - Plain HTML forms (no React) matching D1 catalog selectors:
+     - `/portal/login` and `/portal` dashboard
+     - `/portal/pension/apply` (3 pages: applicant details, bank & life certificate, uploads & review)
+     - `/portal/scholarship/apply` (1 sectioned page with all 14 fields + 5 document uploads)
+     - `/portal/ration-card/apply` (1 page with all 11 fields + 3 document uploads)
+     - Realistic dropdowns (`<select>`), mandatory confirm declaration checkbox (`#chk-confirm-declaration`), optional `?slow=1` delay, `#application-id-result` receipt (`PEN-`/`SCH-`/`RAT-2026-88213`), and `/portal/status/:appId`.
+   - Admin endpoints (behind `DEMO_MODE=true`): `/portal/admin/advance-clock`, `/portal/admin/status` (`Pending -> Under review -> Query raised -> Approved`), `/portal/admin/raise-query`, `/portal/admin/approve`, `/portal/admin/set-fail`, and `/portal/admin/reset`.
+2. **Playwright Portal Robot (`src/portal-agent/robot.js`)**:
+   - Implements the B2 Portal Adapter interface (`fillDraft`, `submit`, `getStatus`), supports `HEADED=true`, reads selectors from the D1 catalog, fills all pages as a **DRAFT** (`FORM_FILLED`), and writes step screenshots into `backend/storage/screenshots/` (gitignored) with sanitized filenames.
+   - Types values from the database by code; secrets never enter logs, screenshot filenames, or LLM payloads.
+   - Missing selector fallback (`llmSelectorFallback`) sends **only** screenshot filename and field `KEYS` (never values).
+   - Retries 3 times with backoff (`dobara koshish 1/3 -> 3/3`) on selector/portal failures.
+   - Invalidates Gate 2 approval whenever the draft is edited after approval (`PATCH /cases/:caseId/draft` or `draftUpdatedAt > approval.at`).
