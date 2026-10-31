@@ -100,9 +100,27 @@ This file tracks module-by-module progress, verification checklists, architectur
   - Connected `backend/src/agentAdapter.js` directly to `@nagarsathi/models`.
 
 ### Verification Checklist (A1)
-- [x] **Install dependencies (`npm install`)**: PASS
+- [x] **All A1 checks & push**: PASS (`cd57eda`, tag `A1-passed`)
+
+---
+
+## Module I1: End-to-End Integration (All 4 Folders)
+
+### What Was Built
+- **Complete 16-Step Marathi (`mr-IN`) E2E Integration (`backend/src/test/i1.e2e.test.js`)**:
+  - Connects `@nagarsathi/frontend`, `@nagarsathi/backend`, `@nagarsathi/models`, `@nagarsathi/database`, and `PlaywrightPortalRobot` (supporting `HEADED=true` visible browser form filling) across all 16 steps for Ramabai Kulkarni (`PEN-2026-88213`, Day-10 query `life certificate purana hai`, `+21 din` stall `7 din se ruka hai`, simulated office call `REF-5521`, loop back to `TRACKING`, and `CLOSED`: `Pension phir chalu ho gayi`).
+- **Second-Service Scholarship Auto-Fill (`~80%` = `11/14` fields) & Exact Missing Questions Assertion**:
+  - Added `/services/:serviceId/autofill-preview` in `backend/src/routes/coreRoutes.js` and camelCase profile mapping in `database/src/autofill.js`.
+  - Verifies that after Ramabai's Pension journey with `saveProfileConsent: true`, 11 of 14 Scholarship fields (`78.6%`) are auto-filled from `Profile` + `VaultDoc` and ONLY the exact 3 genuinely new questions `['course_name', 'institute_name', 'previous_year_marks_pct']` are asked.
+- **All Failure Paths & Safety Invariants Verified**:
+  - Consent NO (halts & deletes uncommitted case), Approval NO / Voice-Only / Draft Edit after approval (invalidates approval, blocks `submit()`), Portal fail x3 (`503 PORTAL_FAILED_AFTER_3_RETRIES` with `draftSafe: true`), Voice fail fallback to text box, Unknown service -> retry once -> Madad Kendra, Bad document loop (blurry + expired -> fresh), and Caller guard (`guardCallOutput`) blocking adversarial officer prompts.
+- **Seeded Demo Reset (`npm run demo:reset`) & Standalone E2E Runner (`npm run test:e2e`)**:
+  - Added `scripts/demo-reset.mjs` and `scripts/run-e2e.mjs`.
+
+### Verification Checklist (I1)
+- [x] **Seeded demo reset (`npm run demo:reset`)**: PASS
+- [x] **End-to-end test suite (`npm run test:e2e` & `HEADED=true`)**: PASS
 - [x] **Lint all workspaces (`npm run lint`)**: PASS
-- [x] **Models evals in 3 languages (`npm run evals --workspace=@nagarsathi/models`)**: PASS (18/18 passed)
-- [x] **All unit & integration tests (`npm run test`)**: PASS (23 frontend + 17 backend + 10 models + 5 database = 55/55 tests passed)
+- [x] **All unit & integration tests (`npm run test`)**: PASS (23 frontend + 19 backend + 5 models + 5 database = 52/52 tests passed)
 - [x] **Build validation (`npm run build`)**: PASS
 - [x] **Secret scan (`npm run scan:secrets`)**: PASS

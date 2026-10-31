@@ -12,6 +12,7 @@ import {
   deleteAllCitizenData,
   loadAllCatalogs,
   loadCatalog,
+  autoFillDraftFields,
 } from '@nagarsathi/database';
 import {
   AUTH_COOKIE_NAME,
@@ -598,6 +599,77 @@ export function createCoreRouter() {
       });
     }
   });
+
+  const handleServiceAutoFillPreview = async (req, res, _next) => {
+    try {
+      const catalog = loadCatalog(req.params.serviceId);
+      const profile = await findOneDocument(Profile, { userId: req.user.id });
+      const vaultDocs = await findDocuments(VaultDoc, { userId: req.user.id });
+
+      const { draftFields, missingCitizenQuestions, resolvedMap } =
+        autoFillDraftFields({
+          catalog,
+          profile,
+          vaultDocs,
+          citizenAnswers: req.body?.citizenAnswers || {},
+        });
+
+      const totalFields = catalog.fields.filter(
+        (f) => f.source !== 'PORTAL_GENERATED'
+      ).length;
+      const autoFilledCount = draftFields.length;
+      const autoFillRatio =
+        totalFields > 0
+          ? Number((autoFilledCount / totalFields).toFixed(4))
+          : 0;
+
+      req.auditMeta = {
+        actor: 'AGENT',
+        action: 'SERVICE_AUTOFILL_PREVIEW',
+        userId: req.user.id,
+        extra: {
+          serviceId: catalog.id,
+          totalFields,
+          autoFilledCount,
+          missingQuestionKeys: missingCitizenQuestions.map((q) => q.key),
+        },
+      };
+
+      return res.status(200).json({
+        display: `${catalog.name.mr}: ${totalFields} पैकी ${autoFilledCount} रकाने प्रोफाइल व कागदपत्रांतून आपोआप भरले गेले आहेत.`,
+        speech: `${totalFields} पैकी ${autoFilledCount} रकाने आधीच्या माहितीतून आपोआप भरले आहेत. फक्त ${missingCitizenQuestions.length} नवीन प्रश्न विचारले जातील.`,
+        data: {
+          serviceId: catalog.id,
+          totalFields,
+          autoFilledCount,
+          autoFillRatio,
+          autoFilledFieldKeys: draftFields.map((f) => f.key),
+          missingQuestionKeys: missingCitizenQuestions.map((q) => q.key),
+          draftFields,
+          missingCitizenQuestions,
+          resolvedMap,
+        },
+      });
+    } catch {
+      return res.status(404).json({
+        error: 'SERVICE_NOT_FOUND',
+        display: 'ही सेवा कॅटलॉगमध्ये सापडली नाही.',
+        speech: 'ही सेवा उपलब्ध नाही.',
+        data: null,
+      });
+    }
+  };
+
+  router.get(
+    '/services/:serviceId/autofill-preview',
+    requireCitizenAuth,
+    handleServiceAutoFillPreview
+  );
+  router.post(
+    '/services/:serviceId/autofill-preview',
+    requireCitizenAuth,
+    handleServiceAutoFillPreview
+  );
 
   return router;
 }

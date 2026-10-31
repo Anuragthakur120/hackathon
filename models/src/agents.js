@@ -85,6 +85,8 @@ function buildIntakeMock({ language, input }) {
         confidence: 0.22,
         unknownAttempts: attempts,
         madadKendra: showMadadKendra,
+        suggestMadadKendra: showMadadKendra,
+        actionRequired: showMadadKendra ? 'OFFER_MADAD_KENDRA' : 'REPEAT_ONCE',
         language,
       },
     };
@@ -584,3 +586,4 @@ export function createModelsClient({
 }
 
 export const defaultModelsClient = createModelsClient();
+

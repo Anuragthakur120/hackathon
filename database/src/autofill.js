@@ -151,6 +151,9 @@ export function autoFillDraftFields({
 
     // 1. Try PROFILE first if available
     const profileKey = fieldDef.profile_key || fieldDef.key;
+    const camelProfileKey = profileKey.replace(/_([a-z])/g, (_, ch) =>
+      ch.toUpperCase()
+    );
     if (profile) {
       if (fieldDef.key === 'aadhaar_masked' && profile.aadhaarMasked) {
         value = profile.aadhaarMasked;
@@ -163,6 +166,12 @@ export function autoFillDraftFields({
         usedSource = fieldDef.source === 'DOCUMENT' ? 'DOCUMENT' : 'PROFILE';
       } else if (profile[profileKey] !== undefined && profile[profileKey] !== null) {
         value = profile[profileKey];
+        usedSource = 'PROFILE';
+      } else if (
+        profile[camelProfileKey] !== undefined &&
+        profile[camelProfileKey] !== null
+      ) {
+        value = profile[camelProfileKey];
         usedSource = 'PROFILE';
       }
     }

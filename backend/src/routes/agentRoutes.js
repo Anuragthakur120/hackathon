@@ -191,29 +191,51 @@ export function createAgentRouter({
 
       const caseDoc = await findOneDocument(Case, { caseId });
       if (caseDoc && caseDoc.consent?.caseConsent) {
-        const targetStatus = response.data.status;
-        if (
-          (targetStatus === 'DOCS_COLLECTING' || targetStatus === 'DOCS_READY') &&
-          caseDoc.status !== targetStatus
-        ) {
+        if (caseDoc.status === 'QUERY_RAISED' && req.body?.markReady) {
           try {
-            let current = caseDoc;
-            if (
-              targetStatus === 'DOCS_READY' &&
-              current.status === 'CONSENTED'
-            ) {
-              current = transitionCase(current, 'DOCS_COLLECTING', {
-                actor: 'AGENT',
-                note: 'Collecting documents',
-              });
-            }
-            current = transitionCase(current, targetStatus, {
-              actor: 'AGENT',
-              note: `Documents status: ${targetStatus}`,
+            const nextCheckAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+            const resumed = transitionCase(caseDoc, 'TRACKING', {
+              actor: 'CITIZEN',
+              note: 'Citizen uploaded renewed document for Day-10 query; looped back to TRACKING',
+              patch: {
+                queryDetails: {
+                  ...(caseDoc.queryDetails || {}),
+                  active: false,
+                  resolvedAt: new Date(),
+                },
+                nextCheckAt,
+              },
             });
-            await saveDocument(Case, current);
+            await saveDocument(Case, resumed);
           } catch {
             // Leave DB case state if transition already applied
+          }
+        } else {
+          const targetStatus = response.data.status;
+          if (
+            (targetStatus === 'DOCS_COLLECTING' ||
+              targetStatus === 'DOCS_READY') &&
+            caseDoc.status !== targetStatus
+          ) {
+            try {
+              let current = caseDoc;
+              if (
+                targetStatus === 'DOCS_READY' &&
+                current.status === 'CONSENTED'
+              ) {
+                current = transitionCase(current, 'DOCS_COLLECTING', {
+                  actor: 'AGENT',
+                  note: 'Collecting documents',
+                });
+              }
+              current = transitionCase(current, targetStatus, {
+                actor: 'AGENT',
+                note: `Documents status: ${targetStatus}`,
+              });
+              await saveDocument(Case, current);
+            } catch {
+              // Leave DB case state if transition already applied
+            }
           }
         }
       }
@@ -371,6 +393,20 @@ export function createAgentRouter({
           data: { approved: false },
         });
       }
+      if (err.code === 'PORTAL_FAILED_AFTER_3_RETRIES') {
+        return res.status(503).json({
+          error: err.code,
+          code: err.code,
+          display: err.message,
+          speech:
+            'सरकारी पोर्टल सध्या प्रतिसाद देत नाही. आम्ही ३ वेळा प्रयत्न केला. तुमचा मसुदा सुरक्षित आहे.',
+          data: {
+            caseId: req.body?.caseId || DEMO_CASE_ID,
+            attempts: err.attempts,
+            draftSafe: true,
+          },
+        });
+      }
       return next(err);
     }
   });
@@ -387,6 +423,44 @@ export function createAgentRouter({
         caseId,
         language,
       });
+
+      const caseDoc = await findOneDocument(Case, { caseId });
+      if (caseDoc && response?.data?.status) {
+        const targetStatus = response.data.status;
+        if (caseDoc.status !== targetStatus) {
+          try {
+            const nextCheckAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+            const patch = { nextCheckAt };
+            if (targetStatus === 'QUERY_RAISED') {
+              patch.queryDetails = {
+                active: true,
+                raisedOnDay: 10,
+                message:
+                  response.data.query?.message ||
+                  'Office ne ek sawal poocha: life certificate purana hai',
+                documentKey: 'life_certificate',
+                resolvedAt: null,
+              };
+            }
+            if (targetStatus === 'STALLED') {
+              patch.stallDetails = {
+                stalled: true,
+                daysElapsed: Number(req.body?.days || 21),
+                stalledDays: 7,
+                reason: '7 din se ruka hai',
+              };
+            }
+            const nextCase = transitionCase(caseDoc, targetStatus, {
+              actor: 'AGENT',
+              note: `Tracker status updated to ${targetStatus}`,
+              patch,
+            });
+            await saveDocument(Case, nextCase);
+          } catch {
+            // Leave DB case state if transition not applicable
+          }
+        }
+      }
 
       req.auditMeta = {
         actor: 'AGENT',

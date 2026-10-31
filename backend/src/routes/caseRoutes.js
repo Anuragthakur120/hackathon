@@ -479,12 +479,14 @@ export function createCaseRouter({ portalAdapter = defaultPortalAdapter } = {}) 
           }
         }
 
-        const { draftFields } = autoFillDraftFields({
+        const { draftFields, missingCitizenQuestions } = autoFillDraftFields({
           catalog,
           profile,
           vaultDocs,
           citizenAnswers: {
-            pension_subtype: 'old_age_pension',
+            ...(caseDoc.service === 'pension'
+              ? { pension_subtype: 'old_age_pension' }
+              : {}),
             ...existingAnswers,
             ...(req.body?.citizenAnswers || {}),
           },
@@ -515,6 +517,9 @@ export function createCaseRouter({ portalAdapter = defaultPortalAdapter } = {}) 
           },
         });
         const saved = await persistCaseUpdate(nextCase);
+        const totalCatalogFields = catalog.fields.filter(
+          (f) => f.source !== 'PORTAL_GENERATED'
+        ).length;
 
         return res.status(200).json({
           display:
@@ -528,6 +533,14 @@ export function createCaseRouter({ portalAdapter = defaultPortalAdapter } = {}) 
               isDraft: true,
               serviceId: saved.service,
               fields: saved.draftFields,
+              autoFilledCount: saved.draftFields.length,
+              totalCatalogFields,
+              autoFillRatio:
+                totalCatalogFields > 0
+                  ? Number((saved.draftFields.length / totalCatalogFields).toFixed(4))
+                  : 0,
+              missingCitizenQuestions,
+              missingQuestionKeys: missingCitizenQuestions.map((q) => q.key),
               portalDraft: portalOutcome.result,
             },
           },
