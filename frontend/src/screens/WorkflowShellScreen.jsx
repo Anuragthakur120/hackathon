@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../state/AppContext.jsx';
 import { CASE_STATUS, transitionCaseState } from '../state/caseMachine.js';
 import { api, DEFAULT_CHECKLIST } from '../api/index.js';
+import { useVoice, SLOW_SPEECH_RATE } from '../voice/useVoice.js';
+import { matchVoiceCommand, VOICE_COMMAND } from '../voice/commands.js';
+import { playFixedAudioOrSpeak } from '../voice/speak.js';
 
 export function WorkflowShellScreen() {
   const {
@@ -32,8 +35,10 @@ export function WorkflowShellScreen() {
 
   // Draft & Approval Gate 2 state (Screen 5)
   const [gate2Halted, setGate2Halted] = useState(false);
+  // HARD VOICE SAFETY RULE: Voice "haan" at Gate 2 NEVER submits alone; it only reveals the big Confirm button
+  const [voiceSaidYesAtGate2, setVoiceSaidYesAtGate2] = useState(false);
 
-  const appendMessage = (sender, display, speech) => {
+  const appendMessage = useCallback((sender, display, speech) => {
     setMessages((prev) => [
       ...prev,
       {
@@ -43,7 +48,7 @@ export function WorkflowShellScreen() {
         speech: speech || display,
       },
     ]);
-  };
+  }, []);
 
   // Screen 2: Intake submission
   const handleSendTranscript = async (customTranscript) => {
@@ -151,7 +156,6 @@ export function WorkflowShellScreen() {
       saveProfile: saveForNextTime,
       language,
     });
-    // Move to Documents Checklist (DOCS_COLLECTING)
     const docsReply = await api.uploadDocuments({
       caseId: caseState.id,
       markReady: false,
@@ -195,7 +199,6 @@ export function WorkflowShellScreen() {
       return;
     }
 
-    // Step 3+: All documents clear and valid -> DOCS_READY
     const reply = await api.uploadDocuments({
       caseId: caseState.id,
       markReady: true,
@@ -213,13 +216,15 @@ export function WorkflowShellScreen() {
   // Screen 4 -> Screen 5: Fill Draft
   const handleFillDraft = async () => {
     setGate2Halted(false);
+    setVoiceSaidYesAtGate2(false);
     await runMockAction('fillDraft');
   };
 
-  // Screen 5: Gate 2 Approval & Submit or Stop
-  const handleGate2Decision = async (approved) => {
+  // Screen 5: Gate 2 Physical Button Approval & Submit or Stop
+  const handleGate2PhysicalButtonDecision = async (approved) => {
     if (!approved) {
       setGate2Halted(true);
+      setVoiceSaidYesAtGate2(false);
       setCaseState((prev) => ({
         ...prev,
         approval: { given: false, timestamp: null },
@@ -228,6 +233,7 @@ export function WorkflowShellScreen() {
     }
 
     setGate2Halted(false);
+    setVoiceSaidYesAtGate2(false);
     await runMockAction('approveDraft');
     await runMockAction('submitForm');
   };
@@ -239,12 +245,138 @@ export function WorkflowShellScreen() {
     setDocAttemptStep(0);
     setDocWarning(null);
     setGate2Halted(false);
+    setVoiceSaidYesAtGate2(false);
     setIntakeSubStep('INITIAL');
     setMessages([]);
     await runMockAction('reset');
   };
 
-  // Determine Human-Control Label for current step
+  // Voice Command Handler for the 6 spoken commands across all screens
+  const handleVoiceCommandAction = async (cmd, rawUtterance = '') => {
+    if (cmd === VOICE_COMMAND.STOP) {
+      stopAllSpeech();
+      return;
+    }
+
+    if (cmd === VOICE_COMMAND.SLOWER) {
+      const slowerRate = SLOW_SPEECH_RATE;
+      setRate(slowerRate);
+      speakText(lastSpokenText || t('micPlaceholderTitle'), {
+        rate: slowerRate,
+      });
+      return;
+    }
+
+    if (cmd === VOICE_COMMAND.REPEAT) {
+      speakText(lastSpokenText || lastAgentReply?.speech || t('micPlaceholderTitle'));
+      return;
+    }
+
+    if (cmd === VOICE_COMMAND.HELP) {
+      setIntakeSubStep('MADAD_KENDRA');
+      speakText(t('madadKendraMessage'));
+      return;
+    }
+
+    if (cmd === VOICE_COMMAND.YES) {
+      // CRITICAL HARD SAFETY RULE: At Gate 2 (FORM_FILLED), voice "haan" is NEVER enough alone to submit!
+      if (
+        caseState.status === CASE_STATUS.FORM_FILLED ||
+        caseState.status === CASE_STATUS.APPROVED
+      ) {
+        setVoiceSaidYesAtGate2(true);
+        const ackText = t('gate2VoiceSaidYesNotice');
+        speakText(ackText);
+        appendMessage('CITIZEN', rawUtterance || 'Haan', rawUtterance || 'Haan');
+        appendMessage('AGENT', ackText, ackText);
+        return;
+      }
+
+      if (caseState.status === CASE_STATUS.INTAKE && intakeSubStep === 'CONFIRM') {
+        await handleServiceConfirm(true);
+        return;
+      }
+      if (caseState.status === CASE_STATUS.INTAKE && intakeSubStep === 'CLARIFY') {
+        await handleAnswerClarifying('old_age_pension', t('answerOldAgePension'));
+        return;
+      }
+      if (caseState.status === CASE_STATUS.SERVICE_CONFIRMED) {
+        await handleConsentDecision(true);
+        return;
+      }
+      if (caseState.status === CASE_STATUS.CONSENTED && !profileSaveAnswered) {
+        await handleProfileSavePreference(true);
+        return;
+      }
+      if (caseState.status === CASE_STATUS.DOCS_READY) {
+        await handleFillDraft();
+        return;
+      }
+    }
+
+    if (cmd === VOICE_COMMAND.NO) {
+      if (
+        caseState.status === CASE_STATUS.FORM_FILLED ||
+        caseState.status === CASE_STATUS.APPROVED
+      ) {
+        await handleGate2PhysicalButtonDecision(false);
+        return;
+      }
+      if (caseState.status === CASE_STATUS.SERVICE_CONFIRMED) {
+        await handleConsentDecision(false);
+        return;
+      }
+      if (caseState.status === CASE_STATUS.CONSENTED && !profileSaveAnswered) {
+        await handleProfileSavePreference(false);
+        return;
+      }
+      if (caseState.status === CASE_STATUS.INTAKE && intakeSubStep === 'CONFIRM') {
+        await handleServiceConfirm(false);
+        return;
+      }
+    }
+  };
+
+  const {
+    autoPlay,
+    setAutoPlay,
+    rate,
+    setRate,
+    isSpeaking,
+    isListening,
+    sttSupported,
+    lastSpokenText,
+    speakText,
+    stopAllSpeech,
+    startListening,
+    stopListening,
+  } = useVoice({
+    language,
+    onVoiceCommand: (cmd, text) => {
+      handleVoiceCommandAction(cmd, text);
+    },
+    onSpokenInput: (transcript) => {
+      handleSendTranscript(transcript);
+    },
+  });
+
+  // Auto-play ("Apne aap bolo") voice guide when agent reply or screen changes
+  useEffect(() => {
+    if (!autoPlay) return;
+    if (lastAgentReply?.speech) {
+      speakText(lastAgentReply.speech, { lang: language });
+    }
+  }, [autoPlay, language, lastAgentReply, speakText]);
+
+  const handleSimulatedVoiceUtterance = async (phrase) => {
+    const cmd = matchVoiceCommand(phrase);
+    if (cmd) {
+      await handleVoiceCommandAction(cmd, phrase);
+    } else {
+      await handleSendTranscript(phrase);
+    }
+  };
+
   const getHumanControlBadge = () => {
     switch (caseState.status) {
       case CASE_STATUS.INTAKE:
@@ -275,15 +407,105 @@ export function WorkflowShellScreen() {
 
   return (
     <div className="ns-workflow-shell">
-      {/* Top Citizen Persona + Status Chip + Human Control Label */}
+      {/* Voice Guide Controls Bar: "Apne aap bolo" auto-play toggle, Speech Rate, & 6 Voice Commands */}
+      <section className="ns-card ns-voice-guide-bar" aria-label="Voice Guide Controls">
+        <div className="ns-voice-bar-top">
+          <label className="ns-autoplay-toggle">
+            <input
+              type="checkbox"
+              data-testid="autoplay-checkbox"
+              checked={autoPlay}
+              onChange={(e) => setAutoPlay(e.target.checked)}
+            />
+            <span>🔊 {t('autoPlayLabel')}</span>
+          </label>
+
+          <div className="ns-voice-meta">
+            <span className="ns-badge" data-testid="speech-rate-badge">
+              Rate: {rate}x
+            </span>
+            <span className="ns-badge" data-testid="mic-state-badge">
+              {isSpeaking ? '🔊 Speaking (Mic OFF)' : isListening ? '🎤 Mic ON' : '🎤 Mic Idle'}
+            </span>
+          </div>
+        </div>
+
+        <div className="ns-voice-cmd-section">
+          <div className="ns-voice-cmd-title">{t('voiceCommandBarTitle')}</div>
+          <div className="ns-voice-cmd-grid" role="group" aria-label="Spoken Voice Commands">
+            <button
+              type="button"
+              className="ns-btn ns-btn-success"
+              data-testid="voice-cmd-yes"
+              onClick={() => handleSimulatedVoiceUtterance('haan')}
+            >
+              {t('cmdYesBtn')}
+            </button>
+            <button
+              type="button"
+              className="ns-btn ns-btn-danger"
+              data-testid="voice-cmd-no"
+              onClick={() => handleSimulatedVoiceUtterance('nahi')}
+            >
+              {t('cmdNoBtn')}
+            </button>
+            <button
+              type="button"
+              className="ns-btn"
+              data-testid="voice-cmd-repeat"
+              onClick={() => handleSimulatedVoiceUtterance('dobara bolo')}
+            >
+              {t('cmdRepeatBtn')}
+            </button>
+            <button
+              type="button"
+              className="ns-btn"
+              data-testid="voice-cmd-slower"
+              onClick={() => handleSimulatedVoiceUtterance('dheere bolo')}
+            >
+              {t('cmdSlowerBtn')}
+            </button>
+            <button
+              type="button"
+              className="ns-btn"
+              data-testid="voice-cmd-stop"
+              onClick={() => handleSimulatedVoiceUtterance('ruko')}
+            >
+              {t('cmdStopBtn')}
+            </button>
+            <button
+              type="button"
+              className="ns-btn ns-btn-outline"
+              data-testid="voice-cmd-help"
+              onClick={() => handleSimulatedVoiceUtterance('madad')}
+            >
+              {t('cmdHelpBtn')}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Top Citizen Persona + Status Chip + Human Control Label + "Sunao" Button */}
       <section className="ns-card ns-persona-card" aria-label="Citizen Persona">
         <div className="ns-persona-header">
           <div>
             <h1 className="ns-card-title">{t('citizenPersonaTitle')}</h1>
             <p className="ns-persona-scenario">{t('citizenPersonaScenario')}</p>
           </div>
-          <div className="ns-badge" data-testid="active-lang-badge">
-            {t('activeLanguageBadge')}
+          <div className="ns-card-top-actions">
+            <div className="ns-badge" data-testid="active-lang-badge">
+              {t('activeLanguageBadge')}
+            </div>
+            <button
+              type="button"
+              className="ns-btn ns-speaker-btn"
+              data-testid="sunao-persona-btn"
+              onClick={() =>
+                speakText(`${t('citizenPersonaTitle')}. ${t('citizenPersonaScenario')}`)
+              }
+            >
+              {t('sunaoBtn')}
+            </button>
           </div>
         </div>
 
@@ -313,6 +535,14 @@ export function WorkflowShellScreen() {
             <strong className="ns-status-value" data-testid="current-case-status">
               {t(`status.${caseState.status}`)}
             </strong>
+            <button
+              type="button"
+              className="ns-btn ns-speaker-btn"
+              data-testid="sunao-status-btn"
+              onClick={() => speakText(t(`status.${caseState.status}`))}
+            >
+              {t('sunaoBtn')}
+            </button>
           </div>
           <div className="ns-human-control-chip" data-testid="human-control-label">
             🛡️ {getHumanControlBadge()}
@@ -343,20 +573,30 @@ export function WorkflowShellScreen() {
           data-testid="screen-conversation"
           aria-label="Conversation and Intake"
         >
-          {/* Big Mic Button Placeholder (Wired in F3) */}
           <div className="ns-mic-hero">
             <button
               type="button"
               className="ns-btn ns-mic-huge-btn"
               data-testid="mic-placeholder-btn"
-              onClick={() => handleSendTranscript('Meri pension band ho gayi')}
+              onClick={() => {
+                if (isListening) {
+                  stopListening();
+                } else {
+                  const started = startListening();
+                  if (!started) {
+                    handleSendTranscript('Meri pension band ho gayi');
+                  }
+                }
+              }}
             >
-              {t('micPlaceholderBtn')}
+              {isListening ? t('micListeningBtn') : t('micPlaceholderBtn')}
             </button>
-            <p className="ns-mic-caption">{t('micPlaceholderTitle')}</p>
+            <p className="ns-mic-caption">
+              {t('micPlaceholderTitle')}
+              {!sttSupported ? ' (Text fallback active)' : ''}
+            </p>
           </div>
 
-          {/* Preset Utterance Buttons for quick citizen / demo selection */}
           <div className="ns-preset-row">
             <button
               type="button"
@@ -376,7 +616,6 @@ export function WorkflowShellScreen() {
             </button>
           </div>
 
-          {/* Text Box Fallback */}
           <div className="ns-text-fallback-row">
             <input
               type="text"
@@ -397,7 +636,6 @@ export function WorkflowShellScreen() {
             </button>
           </div>
 
-          {/* Message Bubbles with Display text + Speaker button on every message */}
           {messages.length > 0 && (
             <div className="ns-message-list" data-testid="conversation-messages">
               {messages.map((m, idx) => (
@@ -414,6 +652,7 @@ export function WorkflowShellScreen() {
                     className="ns-btn ns-speaker-btn"
                     data-testid={`msg-speaker-btn-${idx}`}
                     aria-label={t('speakerBtnLabel')}
+                    onClick={() => speakText(m.speech || m.display)}
                   >
                     {t('speakerBtnLabel')}
                   </button>
@@ -422,10 +661,19 @@ export function WorkflowShellScreen() {
             </div>
           )}
 
-          {/* Clarifying Question -> TWO BIG ANSWER BUTTONS */}
           {intakeSubStep === 'CLARIFY' && (
             <div className="ns-clarify-box" data-testid="clarifying-question-box">
-              <h2 className="ns-section-heading">{t('clarifyingQuestionTitle')}</h2>
+              <div className="ns-card-top-row">
+                <h2 className="ns-section-heading">{t('clarifyingQuestionTitle')}</h2>
+                <button
+                  type="button"
+                  className="ns-btn ns-speaker-btn"
+                  data-testid="sunao-clarify-btn"
+                  onClick={() => speakText(t('clarifyingQuestionTitle'))}
+                >
+                  {t('sunaoBtn')}
+                </button>
+              </div>
               <div className="ns-two-big-buttons">
                 <button
                   type="button"
@@ -454,10 +702,19 @@ export function WorkflowShellScreen() {
             </div>
           )}
 
-          {/* Citizen Service Confirmation ("Aapko pension chalu karwani hai, sahi?") */}
           {intakeSubStep === 'CONFIRM' && (
             <div className="ns-service-confirm-box" data-testid="service-confirm-box">
-              <h2 className="ns-section-heading">{t('serviceConfirmTitle')}</h2>
+              <div className="ns-card-top-row">
+                <h2 className="ns-section-heading">{t('serviceConfirmTitle')}</h2>
+                <button
+                  type="button"
+                  className="ns-btn ns-speaker-btn"
+                  data-testid="sunao-confirm-btn"
+                  onClick={() => speakText(t('serviceConfirmTitle'))}
+                >
+                  {t('sunaoBtn')}
+                </button>
+              </div>
               <div className="ns-two-big-buttons">
                 <button
                   type="button"
@@ -479,10 +736,19 @@ export function WorkflowShellScreen() {
             </div>
           )}
 
-          {/* Unknown Service / Low Confidence -> Madad Kendra */}
           {intakeSubStep === 'MADAD_KENDRA' && (
             <div className="ns-madad-kendra-card" data-testid="madad-kendra-card">
-              <h2>{t('madadKendraTitle')}</h2>
+              <div className="ns-card-top-row">
+                <h2>{t('madadKendraTitle')}</h2>
+                <button
+                  type="button"
+                  className="ns-btn ns-speaker-btn"
+                  data-testid="sunao-madad-btn"
+                  onClick={() => speakText(t('madadKendraMessage'))}
+                >
+                  {t('sunaoBtn')}
+                </button>
+              </div>
               <p>{t('madadKendraMessage')}</p>
               <button
                 type="button"
@@ -498,8 +764,7 @@ export function WorkflowShellScreen() {
       )}
 
       {/* ===================================================================
-          SCREEN (3): CONSENT SCREEN = GATE 1 (Distinct Gate 1 Color)
-          + Separate Profile Save Question
+          SCREEN (3): CONSENT SCREEN = GATE 1 + Separate Profile Save Question
           =================================================================== */}
       {(caseState.status === CASE_STATUS.SERVICE_CONFIRMED ||
         (caseState.status === CASE_STATUS.CONSENTED && !profileSaveAnswered)) && (
@@ -508,8 +773,24 @@ export function WorkflowShellScreen() {
           data-testid="screen-consent-gate1"
           aria-label="Gate 1 Consent"
         >
-          <div className="ns-gate1-banner" data-testid="gate-1-badge">
-            🔒 {t('gate1Badge')}
+          <div className="ns-card-top-row">
+            <div className="ns-gate1-banner" data-testid="gate-1-badge">
+              🔒 {t('gate1Badge')}
+            </div>
+            <button
+              type="button"
+              className="ns-btn ns-speaker-btn"
+              data-testid="sunao-consent-btn"
+              onClick={() =>
+                playFixedAudioOrSpeak(
+                  'consent',
+                  `${t('consentScreenTitle')}. ${t('consentCanDo1')}. ${t('consentCannotDo1')}.`,
+                  { lang: language, rate }
+                )
+              }
+            >
+              {t('sunaoBtn')}
+            </button>
           </div>
           <h2 className="ns-title">{t('consentScreenTitle')}</h2>
 
@@ -555,7 +836,6 @@ export function WorkflowShellScreen() {
             </>
           )}
 
-          {/* Consent NO -> Friendly Halted End Screen, nothing saved */}
           {consentHalted && (
             <div className="ns-halted-box" data-testid="consent-halted-screen">
               <h3>🛑 {t('consentHaltedTitle')}</h3>
@@ -571,10 +851,23 @@ export function WorkflowShellScreen() {
             </div>
           )}
 
-          {/* Separate Question Right After Consent: Save Profile for Next Time? */}
           {caseState.status === CASE_STATUS.CONSENTED && !profileSaveAnswered && (
             <div className="ns-save-profile-box" data-testid="save-profile-card">
-              <h3>{t('saveProfileQuestionTitle')}</h3>
+              <div className="ns-card-top-row">
+                <h3>{t('saveProfileQuestionTitle')}</h3>
+                <button
+                  type="button"
+                  className="ns-btn ns-speaker-btn"
+                  data-testid="sunao-save-profile-btn"
+                  onClick={() =>
+                    speakText(
+                      `${t('saveProfileQuestionTitle')} ${t('saveProfileExplanation')}`
+                    )
+                  }
+                >
+                  {t('sunaoBtn')}
+                </button>
+              </div>
               <p className="ns-save-profile-note">{t('saveProfileExplanation')}</p>
               <div className="ns-two-big-buttons">
                 <button
@@ -610,7 +903,18 @@ export function WorkflowShellScreen() {
           data-testid="screen-documents"
           aria-label="Documents Checklist"
         >
-          <h2 className="ns-title">{t('docsScreenTitle')}</h2>
+          <div className="ns-card-top-row">
+            <h2 className="ns-title">{t('docsScreenTitle')}</h2>
+            <button
+              type="button"
+              className="ns-btn ns-speaker-btn"
+              data-testid="sunao-docs-btn"
+              onClick={() => speakText(t('docsScreenTitle'))}
+            >
+              {t('sunaoBtn')}
+            </button>
+          </div>
+
           {profileSavedChoice !== null && (
             <p className="ns-badge" data-testid="profile-save-choice-pill">
               {profileSavedChoice ? t('saveProfileYesBtn') : t('saveProfileNoBtn')}
@@ -638,7 +942,6 @@ export function WorkflowShellScreen() {
             )}
           </ul>
 
-          {/* Bad Document Warning Banner */}
           {docWarning && (
             <div
               className="ns-alert-error"
@@ -649,7 +952,6 @@ export function WorkflowShellScreen() {
             </div>
           )}
 
-          {/* Camera Input + Capture Buttons */}
           <div className="ns-camera-controls">
             <label className="ns-btn ns-btn-primary" htmlFor="ns-camera-capture-input">
               {t('docsCameraBtn')}
@@ -693,7 +995,8 @@ export function WorkflowShellScreen() {
       )}
 
       {/* ===================================================================
-          SCREEN (5): DRAFT FORM SUMMARY + GATE 2 (Distinct Gate 2 Color)
+          SCREEN (5): DRAFT FORM SUMMARY + GATE 2
+          (VOICE ALONE IS NEVER ENOUGH TO SUBMIT)
           =================================================================== */}
       {(caseState.status === CASE_STATUS.FORM_FILLED ||
         caseState.status === CASE_STATUS.APPROVED) && (
@@ -704,9 +1007,24 @@ export function WorkflowShellScreen() {
         >
           <div className="ns-draft-header">
             <h2 className="ns-title">{t('draftScreenTitle')}</h2>
-            <span className="ns-draft-only-badge" data-testid="draft-only-badge">
-              📝 {t('draftBadgeText')}
-            </span>
+            <div className="ns-card-top-actions">
+              <span className="ns-draft-only-badge" data-testid="draft-only-badge">
+                📝 {t('draftBadgeText')}
+              </span>
+              <button
+                type="button"
+                className="ns-btn ns-speaker-btn"
+                data-testid="sunao-draft-btn"
+                onClick={() =>
+                  playFixedAudioOrSpeak('approval', t('gate2Prompt'), {
+                    lang: language,
+                    rate,
+                  })
+                }
+              >
+                {t('sunaoBtn')}
+              </button>
+            </div>
           </div>
 
           <div className="ns-draft-fields-list" data-testid="draft-fields-list">
@@ -730,7 +1048,7 @@ export function WorkflowShellScreen() {
             ))}
           </div>
 
-          {/* GATE 2: Final Approval Gate (Distinct Color) */}
+          {/* GATE 2: Final Approval Gate */}
           <div className="ns-gate2-box" data-testid="gate-2-box">
             <div className="ns-gate2-banner" data-testid="gate-2-badge">
               🛡️ {t('gate2Badge')}
@@ -739,12 +1057,31 @@ export function WorkflowShellScreen() {
             {!gate2Halted ? (
               <>
                 <p className="ns-gate2-prompt">{t('gate2Prompt')}</p>
+
+                {/* If citizen said "Haan" by voice, agent repeats confirmation and shows Big Green Confirm Button */}
+                {voiceSaidYesAtGate2 && (
+                  <div
+                    className="ns-voice-gate2-confirm-banner"
+                    data-testid="gate2-voice-yes-notice"
+                  >
+                    <p>{t('gate2VoiceSaidYesNotice')}</p>
+                    <button
+                      type="button"
+                      className="ns-btn ns-btn-large ns-btn-success"
+                      data-testid="gate2-voice-confirm-btn"
+                      onClick={() => handleGate2PhysicalButtonDecision(true)}
+                    >
+                      {t('gate2VoiceConfirmFinalBtn')}
+                    </button>
+                  </div>
+                )}
+
                 <div className="ns-two-big-buttons">
                   <button
                     type="button"
                     className="ns-btn ns-btn-large ns-btn-success"
                     data-testid="gate2-submit-btn"
-                    onClick={() => handleGate2Decision(true)}
+                    onClick={() => handleGate2PhysicalButtonDecision(true)}
                   >
                     {t('gate2SubmitBtn')}
                   </button>
@@ -752,7 +1089,7 @@ export function WorkflowShellScreen() {
                     type="button"
                     className="ns-btn ns-btn-large ns-btn-danger"
                     data-testid="gate2-no-btn"
-                    onClick={() => handleGate2Decision(false)}
+                    onClick={() => handleGate2PhysicalButtonDecision(false)}
                   >
                     {t('gate2ChangeNoBtn')}
                   </button>
@@ -785,7 +1122,21 @@ export function WorkflowShellScreen() {
           data-testid="screen-submitted"
           aria-label="Application Submitted"
         >
-          <h2 className="ns-title">🎉 {t('submittedScreenTitle')}</h2>
+          <div className="ns-card-top-row">
+            <h2 className="ns-title">🎉 {t('submittedScreenTitle')}</h2>
+            <button
+              type="button"
+              className="ns-btn ns-speaker-btn"
+              data-testid="sunao-submitted-btn"
+              onClick={() =>
+                speakText(
+                  `${t('submittedScreenTitle')}. ${t('submittedAppIdLabel')}: PEN-2026-88213`
+                )
+              }
+            >
+              {t('sunaoBtn')}
+            </button>
+          </div>
           <p className="ns-subtitle">{t('submittedScreenSubtitle')}</p>
 
           <div className="ns-big-app-id-box">

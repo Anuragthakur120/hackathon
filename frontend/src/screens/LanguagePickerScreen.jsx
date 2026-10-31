@@ -1,19 +1,56 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../state/AppContext.jsx';
 import { SUPPORTED_LANGUAGES } from '../i18n/index.js';
+import { checkVoiceSupport, playFixedAudioOrSpeak } from '../voice/speak.js';
 
 export function LanguagePickerScreen() {
   const { language, setLanguage, t } = useApp();
   const navigate = useNavigate();
+  const [voiceCheck, setVoiceCheck] = useState(() =>
+    checkVoiceSupport('mr-IN')
+  );
+  const [testedOnce, setTestedOnce] = useState(false);
 
   const handleSelectLanguage = (langCode) => {
     setLanguage(langCode);
+    playFixedAudioOrSpeak('welcome', t('languagePickerSubtitle'), {
+      lang: langCode,
+    });
+  };
+
+  const handleRunVoiceTest = () => {
+    const result = checkVoiceSupport('mr-IN');
+    setVoiceCheck(result);
+    setTestedOnce(true);
+    playFixedAudioOrSpeak(
+      'welcome',
+      'नमस्कार रमाबाई, नगरसाथीमध्ये तुमचे स्वागत आहे. आपली मराठी आवाज तपासणी सुरू आहे.',
+      { lang: 'mr-IN' }
+    );
   };
 
   return (
-    <section className="ns-card ns-lang-picker-screen" aria-labelledby="lang-picker-heading">
-      <div className="ns-badge" data-testid="active-lang-badge">
-        {t('activeLanguageBadge')}
+    <section
+      className="ns-card ns-lang-picker-screen"
+      aria-labelledby="lang-picker-heading"
+    >
+      <div className="ns-card-top-row">
+        <div className="ns-badge" data-testid="active-lang-badge">
+          {t('activeLanguageBadge')}
+        </div>
+        <button
+          type="button"
+          className="ns-btn ns-speaker-btn"
+          data-testid="sunao-picker-btn"
+          onClick={() =>
+            playFixedAudioOrSpeak('welcome', t('languagePickerSubtitle'), {
+              lang: language,
+            })
+          }
+        >
+          {t('sunaoBtn')}
+        </button>
       </div>
 
       <h1 id="lang-picker-heading" className="ns-title">
@@ -21,7 +58,11 @@ export function LanguagePickerScreen() {
       </h1>
       <p className="ns-subtitle">{t('languagePickerSubtitle')}</p>
 
-      <div className="ns-huge-lang-list" role="group" aria-label={t('languagePickerTitle')}>
+      <div
+        className="ns-huge-lang-list"
+        role="group"
+        aria-label={t('languagePickerTitle')}
+      >
         {SUPPORTED_LANGUAGES.map((item) => {
           const isSelected = language === item.code;
           return (
@@ -29,7 +70,9 @@ export function LanguagePickerScreen() {
               key={item.code}
               type="button"
               data-testid={`picker-lang-${item.shortCode}`}
-              className={`ns-btn ns-huge-lang-btn ${isSelected ? 'ns-huge-lang-btn-selected' : ''}`}
+              className={`ns-btn ns-huge-lang-btn ${
+                isSelected ? 'ns-huge-lang-btn-selected' : ''
+              }`}
               aria-pressed={isSelected}
               onClick={() => handleSelectLanguage(item.code)}
             >
@@ -38,6 +81,35 @@ export function LanguagePickerScreen() {
             </button>
           );
         })}
+      </div>
+
+      {/* Startup Self-Check: "Voice test" */}
+      <div
+        className="ns-voice-self-check-card"
+        data-testid="voice-self-check-card"
+      >
+        <div className="ns-voice-check-header">
+          <strong>🎙️ {t('voiceSelfCheckTitle')}</strong>
+          <button
+            type="button"
+            className="ns-btn ns-btn-outline"
+            data-testid="run-voice-test-btn"
+            onClick={handleRunVoiceTest}
+          >
+            {t('voiceSelfCheckRunBtn')}
+          </button>
+        </div>
+        <p
+          className="ns-voice-check-status"
+          data-testid="voice-check-status"
+        >
+          {voiceCheck.hasNativeMarathi
+            ? `✅ ${t('voiceSelfCheckNativeOk')}`
+            : `⚠️ ${t('voiceSelfCheckHindiFallback')}`}
+          {testedOnce && voiceCheck.selectedVoiceLang
+            ? ` (${voiceCheck.selectedVoiceLang})`
+            : ''}
+        </p>
       </div>
 
       <div className="ns-picker-actions">
@@ -53,4 +125,3 @@ export function LanguagePickerScreen() {
     </section>
   );
 }
-

@@ -716,6 +716,96 @@ body {
   font-size: 0.9rem;
 }
 
+.ns-card-top-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.ns-card-top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ns-voice-self-check-card {
+  background: #f0f9ff;
+  border: 2px solid #0284c7;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.ns-voice-check-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ns-voice-check-status {
+  margin: 0.5rem 0 0;
+  font-weight: 700;
+}
+
+.ns-voice-guide-bar {
+  background: #eff6ff;
+  border-color: var(--ns-primary);
+}
+
+.ns-voice-bar-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.ns-autoplay-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ns-autoplay-toggle input {
+  width: 24px;
+  height: 24px;
+}
+
+.ns-voice-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ns-voice-cmd-title {
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.ns-voice-cmd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.65rem;
+}
+
+.ns-voice-gate2-confirm-banner {
+  background: #dcfce7;
+  border: 3px solid var(--ns-success);
+  border-radius: 12px;
+  padding: 1rem;
+  margin: 1rem 0;
+  font-weight: 800;
+}
+
 .ns-footer {
   background: #0f172a;
   color: #ffffff;

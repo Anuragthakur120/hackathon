@@ -6,18 +6,12 @@ This file tracks module-by-module progress, verification checklists, architectur
 
 ## Module M0: Repo Setup
 
-### What Was Built
-- Created the 4 top-level npm workspace packages (`/frontend`, `/backend`, `/models`, `/database`) and root workspace setup (`README.md`, `.gitignore`, `.env.example`, `package.json`, `package-lock.json`, `PROGRESS.md`, `scripts/`).
-
 ### Verification Checklist (M0)
 - [x] **All M0 checks & push**: PASS (`6b0de58`, tag `M0-passed`)
 
 ---
 
 ## Module F1: Frontend Shell + Language + Mock Layer
-
-### What Was Built
-- Vite + React + React Router mobile-first shell, `mr-IN`/`hi-IN`/`en-IN` i18n dictionaries, `LanguagePickerScreen`, `CONTRACT.md`, `mockApi.js`, `realApi.js`, `caseMachine.js` with `SUBMITTED` approval guard, `AppLayout`, and `ErrorBoundary`.
 
 ### Verification Checklist (F1)
 - [x] **All F1 checks, UI screenshot & push**: PASS (`87b445b`, tag `F1-passed`)
@@ -26,35 +20,40 @@ This file tracks module-by-module progress, verification checklists, architectur
 
 ## Module F2: Core Journey Screens (Steps 1–10, No Voice)
 
-### What Was Built
-- **Screen 2 — Conversation & Intake (`WorkflowShellScreen.jsx`)**:
-  - Big mic button placeholder (wired in F3), text box fallback, and message bubbles showing `display` text with a speaker (`🔊`) button on every message.
-  - Intake flow: `"Meri pension band ho gayi"` triggers clarifying question (`"Kaunsi pension?"`) with two big answer buttons (`Old-Age Pension` / `Widow-Disability Pension`), followed by Citizen Confirm (`"Aapko pension chalu karwani hai, sahi?"`) with big Yes/No buttons -> `SERVICE_CONFIRMED`.
-  - Unknown service / low confidence path: asks citizen to clarify once, then displays the **Madad Kendra** help card.
-- **Screen 3 — Consent Screen = Gate 1 (`SERVICE_CONFIRMED` -> `CONSENTED` or Halted)**:
-  - Distinct Gate 1 styling (`--ns-gate1-bg`, `--ns-gate1-border`) with clear lists of what NagarSathi **CAN DO** (fill draft, track case, call office) and **CANNOT DO** (submit without approval, pay money, share data).
-  - Big Green Tick (`✓` Agree) and Red Cross (`✗` No). Clicking NO stops the flow immediately with nothing saved.
-  - Separate post-consent question (`"Agli baar ke liye data save karun?"`) explaining 30-day automatic case deletion vs. user-controlled saved profile.
-- **Screen 4 — Documents Checklist & Bad-Document Loop (`DOCS_COLLECTING` -> `DOCS_READY`)**:
-  - Ticked checklist with masked values, `<input type="file" accept="image/*" capture="environment" />` (`"Photo kheencho"`), and bad-document loop (`"Photo dhundhli hai, dobara"` -> `"Life certificate purana hai"` -> `DOCS_READY`).
-- **Screen 5 — Draft Form Summary & Gate 2 (`FORM_FILLED` -> `APPROVED` -> `SUBMITTED` or Halted)**:
-  - Displays `DRAFT ONLY` badge and all 6 field source tags (`PROFILE`, `DOCUMENT`, `ASK_CITIZEN`, `DERIVED`, `DEFAULT`, `PORTAL_GENERATED`) with masked Aadhaar (`XXXX-XXXX-4821`), phone (`XXXXXX3210`), and bank account (`XXXXXXXX9012`).
-  - Distinct Gate 2 approval box (`"Submit karo"` / `"Badlo"`). Clicking NO halts submission with nothing submitted.
-- **Screen 10 — Submitted Screen (`SUBMITTED`)**:
-  - Displays official Application ID `PEN-2026-88213` prominently.
-- **Status Chip & Human-Control Labels**:
-  - Every step shows the current status chip and human-control badge (`Citizen Confirm`, `Gate 1: Consent`, `Gate 2: Final Approval`).
-
 ### Verification Checklist (F2)
+- [x] **All F2 checks, UI screenshot & push**: PASS (`a058aba`, tag `F2-passed`)
+
+---
+
+## Module F3: Voice Assistant Layer
+
+### What Was Built
+- **TTS Engine & Sentence Splitter (`frontend/src/voice/speak.js`)**:
+  - Splits utterances on sentence boundaries (`/(?<=[.?!।])\s+/`) so Chrome never halts mid-paragraph.
+  - Implements voice selection fallback order: exact match (`mr-IN`) -> prefix match (`mr`) -> Hindi fallback (`hi-IN`) -> `null`.
+  - Formats speech output (strips symbols/URLs, spells out alphanumeric IDs digit by digit like `PEN-2026-88213`).
+  - Supports pre-recorded `.mp3` slots (`/audio/{lang}/{welcome,consent,approval}.mp3`) with live Web Speech TTS fallback (`playFixedAudioOrSpeak`), documented in `frontend/public/audio/README.md` and `frontend/README.md`.
+- **Echo-Guarded Voice Hook (`frontend/src/voice/useVoice.js`) & Command Matcher (`frontend/src/voice/commands.js`)**:
+  - Automatic voice guide (`"Apne aap bolo"` auto-play enabled by default).
+  - Turns microphone OFF (`recognition.stop()`) while the app is speaking and resumes (`recognition.start()`) inside `onEnd` so the app never hears itself.
+  - Default speaking rate `0.85`; `"dheere bolo"` lowers rate to `0.65`.
+  - Maps all 6 spoken commands across Marathi, Hindi, and English (`YES` / `haan`, `NO` / `nahi`, `REPEAT` / `dobara bolo`, `SLOWER` / `dheere bolo`, `STOP` / `ruko`, `HELP` / `madad`).
+- **"Sunao" (`🔊`) Buttons & Startup Voice Test**:
+  - Added `"Sunao"` speaker buttons to every card, message bubble, and status bar.
+  - Added Startup Voice Self-Check card on `LanguagePickerScreen.jsx` that plays a Marathi test sentence and reports whether a native `mr-IN` voice exists or warns that `hi-IN` fallback is active.
+- **Hard Voice Approval Guard at Gate 2**:
+  - Saying `"haan"` by voice at Gate 2 never submits the form alone; the agent speaks `"Aapne haan kaha. Ab form jama ho raha hai..."` and reveals a big green physical Confirm button (`gate2-voice-confirm-btn`). Submission happens strictly on physical button click.
+
+### Verification Checklist (F3)
 - [x] **Install dependencies (`npm install`)**: PASS
 - [x] **Lint all workspaces (`npm run lint`)**: PASS (`eslint src --max-warnings=0`)
-- [x] **Regression + F2 unit & component tests (`npm run test`)**: PASS (9/9 tests across `f1.test.jsx` and `f2.test.jsx`)
+- [x] **Regression + F3 unit & component tests (`npm run test`)**: PASS (15/15 tests across `f1.test.jsx`, `f2.test.jsx`, and `f3.test.jsx`)
 - [x] **Production build (`npm run build`)**: PASS
 - [x] **Secret scan (`npm run scan:secrets`)**: PASS
 - [x] **UI smoke check & screenshot evidence**: PASS
 
 ### Architectural Decisions & Notes
-- Kept all F2 journey state self-contained in `WorkflowShellScreen.jsx` + `mockApi.js` while preserving the developer quick-action bar so both guided citizen flows and direct state jumps work seamlessly.
+- Exported pure `createMicController` alongside the `useVoice` React hook so the acoustic echo guard (`stopMic` on speak start, `startMic` on `onend`) is deterministically unit-testable with mocked `speechSynthesis` and `SpeechRecognition`.
 
 ### Known Limitations
-- Microphone STT and speaker TTS playback buttons are placeholders in F2 and will be wired to Web Speech API in F3.
+- Browser Web Speech API availability varies by OS/browser; when STT is absent, the UI automatically indicates text-box and one-tap voice command fallback.
