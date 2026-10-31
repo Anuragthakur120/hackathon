@@ -31,6 +31,8 @@ body {
 
 .ns-shell {
   min-height: 100vh;
+  max-width: 100vw;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -804,6 +806,163 @@ body {
   padding: 1rem;
   margin: 1rem 0;
   font-weight: 800;
+}
+
+/* Screen 6: Tracking Timeline & Day-10 Query & +21 din Stall */
+.ns-timeline-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.ns-timeline-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.4rem;
+  padding: 0.85rem 0.65rem;
+  border: 2px solid #94a3b8;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.ns-timeline-node-visited {
+  background: #dcfce7;
+  border-color: var(--ns-success);
+}
+
+.ns-timeline-node-current {
+  background: #fef08a;
+  border: 3px solid var(--ns-primary);
+  box-shadow: 0 0 0 3px var(--ns-primary);
+  font-weight: 900;
+}
+
+.ns-timeline-icon {
+  font-size: 1.85rem;
+}
+
+.ns-timeline-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.ns-query-raised-card {
+  background: #fffbeb;
+  border: 3px solid #d97706;
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-top: 1rem;
+}
+
+.ns-stalled-card {
+  background: #fff1f2;
+  border: 3px solid var(--ns-danger);
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-top: 1rem;
+}
+
+.ns-call-schedule-banner {
+  background: #e0f2fe;
+  border: 2px solid #0284c7;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+/* Screen 7: Simulated Office Call */
+.ns-screen-call {
+  background: #f0f9ff;
+  border-color: #0369a1;
+}
+
+.ns-call-transcript-box {
+  background: #ffffff;
+  border: 2px solid #0f172a;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ns-call-turn-item {
+  padding: 0.65rem 0.85rem;
+  background: #f8fafc;
+  border-left: 4px solid var(--ns-primary);
+  border-radius: 6px;
+}
+
+.ns-call-extracted-box {
+  background: #dcfce7;
+  border: 3px solid var(--ns-success);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 1rem;
+  font-weight: 700;
+}
+
+/* Final CLOSED Screen */
+.ns-screen-closed {
+  background: #dcfce7;
+  border: 4px solid var(--ns-success);
+  text-align: center;
+}
+
+/* Letter Explainer & Portal Retry Failure UI */
+.ns-letter-explanation-box {
+  background: #fefce8;
+  border: 2px solid #ca8a04;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.ns-portal-retry-box {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #fff1f2;
+  border: 2px solid var(--ns-danger);
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.ns-madad-steps {
+  font-weight: 700;
+  margin: 0.75rem 0 1.25rem;
+}
+
+/* Mobile Layout Support at 360px-640px width */
+@media (max-width: 640px) {
+  body {
+    font-size: 16px;
+  }
+  .ns-header {
+    padding: 0.75rem;
+  }
+  .ns-main {
+    padding: 0.5rem;
+  }
+  .ns-card {
+    padding: 0.85rem;
+  }
+  .ns-two-big-buttons,
+  .ns-action-grid,
+  .ns-voice-cmd-grid,
+  .ns-timeline-grid {
+    grid-template-columns: 1fr;
+  }
+  .ns-text-fallback-row {
+    flex-direction: column;
+  }
+  .ns-big-app-id-value {
+    font-size: 1.65rem;
+  }
 }
 
 .ns-footer {

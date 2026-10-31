@@ -190,3 +190,4 @@ export function playFixedAudioOrSpeak(
   }
   speak(fallbackText, { lang, rate, onStart, onEnd });
 }
+

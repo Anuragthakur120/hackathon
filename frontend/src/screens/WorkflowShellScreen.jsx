@@ -6,6 +6,15 @@ import { useVoice, SLOW_SPEECH_RATE } from '../voice/useVoice.js';
 import { matchVoiceCommand, VOICE_COMMAND } from '../voice/commands.js';
 import { playFixedAudioOrSpeak } from '../voice/speak.js';
 
+const TIMELINE_STAGES = [
+  { status: CASE_STATUS.SUBMITTED, icon: '📤' },
+  { status: CASE_STATUS.TRACKING, icon: '🔍' },
+  { status: CASE_STATUS.QUERY_RAISED, icon: '❓' },
+  { status: CASE_STATUS.STALLED, icon: '⏳' },
+  { status: CASE_STATUS.CALLED, icon: '📞' },
+  { status: CASE_STATUS.CLOSED, icon: '✅' },
+];
+
 export function WorkflowShellScreen() {
   const {
     language,
@@ -30,13 +39,28 @@ export function WorkflowShellScreen() {
   const [profileSavedChoice, setProfileSavedChoice] = useState(null);
 
   // Documents Bad-Document Loop state (Screen 4)
-  const [docAttemptStep, setDocAttemptStep] = useState(0); // 0: initial, 1: blurry, 2: expired, 3: ready
+  const [docAttemptStep, setDocAttemptStep] = useState(0);
   const [docWarning, setDocWarning] = useState(null);
 
   // Draft & Approval Gate 2 state (Screen 5)
   const [gate2Halted, setGate2Halted] = useState(false);
-  // HARD VOICE SAFETY RULE: Voice "haan" at Gate 2 NEVER submits alone; it only reveals the big Confirm button
   const [voiceSaidYesAtGate2, setVoiceSaidYesAtGate2] = useState(false);
+
+  // Screen 7: Simulated Office Call state (F4)
+  const [callSessionActive, setCallSessionActive] = useState(false);
+  const [callTurns, setCallTurns] = useState([]);
+  const [officerInput, setOfficerInput] = useState('');
+  const [extractedRefId, setExtractedRefId] = useState(null);
+
+  // Screen 8: Help Centre (Madad Kendra) modal/card toggle (F4)
+  const [showMadadKendraPanel, setShowMadadKendraPanel] = useState(false);
+
+  // Letter Explainer ("Ye chitthi samjhao") state (F4)
+  const [letterExplanation, setLetterExplanation] = useState(null);
+
+  // Portal Retry x3 Failure UI state (F4)
+  const [portalRetryAttempts, setPortalRetryAttempts] = useState([]);
+  const [portalFailedFinal, setPortalFailedFinal] = useState(false);
 
   const appendMessage = useCallback((sender, display, speech) => {
     setMessages((prev) => [
@@ -70,6 +94,7 @@ export function WorkflowShellScreen() {
 
     if (reply.data.madadKendra) {
       setIntakeSubStep('MADAD_KENDRA');
+      setShowMadadKendraPanel(true);
       return;
     }
 
@@ -238,6 +263,121 @@ export function WorkflowShellScreen() {
     await runMockAction('submitForm');
   };
 
+  // Screen 6: Tracking -> Query Raised -> Resubmit Document -> Back to Tracking
+  const handleRaiseQueryDay10 = async () => {
+    await runMockAction('raiseQuery');
+  };
+
+  const handleResubmitQueryDocument = async () => {
+    await runMockAction('trackStatus');
+  };
+
+  // Screen 6: Time-Skip +21 days -> STALLED ("7 din se ruka hai")
+  const handleTimeSkip21Days = async () => {
+    const reply = await api.demoSkipDays({
+      caseId: caseState.id,
+      days: 21,
+      language,
+    });
+    setLastAgentReply(reply);
+    setCaseState((prev) =>
+      transitionCaseState(prev, CASE_STATUS.STALLED, {
+        tracking: {
+          ...(prev.tracking || {}),
+          daysElapsed: 21,
+          stalledDays: 7,
+          stalled: true,
+        },
+      })
+    );
+  };
+
+  // Screen 7: Start Simulated Office Call (Judge plays Officer)
+  const handleStartOfficeCall = async () => {
+    setCallSessionActive(true);
+    setExtractedRefId(null);
+    const startReply = await api.startCall({
+      caseId: caseState.id,
+      language,
+    });
+    setLastAgentReply(startReply);
+    setCallTurns(startReply.data.turns || []);
+  };
+
+  // Screen 7: Judge/Officer submits reply -> Caller Agent extracts REF-5521 & schedules next check
+  const handleSendOfficerReply = async (customOfficerText) => {
+    const text =
+      customOfficerText ||
+      officerInput.trim() ||
+      'Verified life certificate JP-2026-9910. Reference REF-5521 logged. Check in 3 days.';
+
+    setOfficerInput('');
+    const turnReply = await api.callTurn({
+      caseId: caseState.id,
+      officerUtterance: text,
+      language,
+    });
+    const endReply = await api.endCall({
+      caseId: caseState.id,
+      language,
+    });
+
+    setCallTurns((prev) => [
+      ...prev,
+      {
+        speaker: 'OFFICE_OFFICER (JUDGE)',
+        text: turnReply?.data?.turn?.text || text,
+      },
+      {
+        speaker: 'NAGARSATHI_AGENT',
+        text: `${endReply.display} (${t('callNextCheckSchedule')})`,
+      },
+    ]);
+    setExtractedRefId(endReply.data.referenceId || 'REF-5521');
+    setLastAgentReply(endReply);
+    setCaseState((prev) =>
+      transitionCaseState(prev, CASE_STATUS.CALLED, {
+        callRecord: {
+          referenceId: endReply.data.referenceId || 'REF-5521',
+          summary: endReply.data.summary,
+          nextCheckInDays: 3,
+        },
+      })
+    );
+  };
+
+  // Screen 7 -> Screen 6: Return to TRACKING after call ("case updated")
+  const handleReturnToTrackingAfterCall = async () => {
+    setCallSessionActive(false);
+    await runMockAction('trackStatus');
+  };
+
+  // Final Approval -> CLOSED ("Pension phir chalu ho gayi")
+  const handleFinalApproveAndClose = async () => {
+    setCallSessionActive(false);
+    await runMockAction('closeCase');
+  };
+
+  // Letter Explainer ("Ye chitthi samjhao")
+  const handleExplainLetter = async () => {
+    const reply = await api.explainLetter({ language });
+    setLetterExplanation(reply);
+    setLastAgentReply(reply);
+    speakText(reply.speech || reply.display, { lang: language });
+  };
+
+  // Portal Failure Retry x3 ("dobara koshish 1/3", "2/3", "3/3" -> final citizen message)
+  const handleSimulatePortalFailure = () => {
+    const attempts = [
+      `${t('portalRetryProgress')} 1/3)...`,
+      `${t('portalRetryProgress')} 2/3)...`,
+      `${t('portalRetryProgress')} 3/3)...`,
+    ];
+    setPortalRetryAttempts(attempts);
+    setPortalFailedFinal(true);
+    speakText(t('portalRetryFailedFinal'), { lang: language });
+  };
+
   const handleFullReset = async () => {
     setConsentHalted(false);
     setProfileSaveAnswered(false);
@@ -246,6 +386,14 @@ export function WorkflowShellScreen() {
     setDocWarning(null);
     setGate2Halted(false);
     setVoiceSaidYesAtGate2(false);
+    setCallSessionActive(false);
+    setCallTurns([]);
+    setOfficerInput('');
+    setExtractedRefId(null);
+    setShowMadadKendraPanel(false);
+    setLetterExplanation(null);
+    setPortalRetryAttempts([]);
+    setPortalFailedFinal(false);
     setIntakeSubStep('INITIAL');
     setMessages([]);
     await runMockAction('reset');
@@ -274,12 +422,12 @@ export function WorkflowShellScreen() {
 
     if (cmd === VOICE_COMMAND.HELP) {
       setIntakeSubStep('MADAD_KENDRA');
+      setShowMadadKendraPanel(true);
       speakText(t('madadKendraMessage'));
       return;
     }
 
     if (cmd === VOICE_COMMAND.YES) {
-      // CRITICAL HARD SAFETY RULE: At Gate 2 (FORM_FILLED), voice "haan" is NEVER enough alone to submit!
       if (
         caseState.status === CASE_STATUS.FORM_FILLED ||
         caseState.status === CASE_STATUS.APPROVED
@@ -360,7 +508,6 @@ export function WorkflowShellScreen() {
     },
   });
 
-  // Auto-play ("Apne aap bolo") voice guide when agent reply or screen changes
   useEffect(() => {
     if (!autoPlay) return;
     if (lastAgentReply?.speech) {
@@ -404,6 +551,13 @@ export function WorkflowShellScreen() {
       // Handled in AppContext safetyAlert
     }
   };
+
+  const isPostSubmissionTrackingStage =
+    caseState.status === CASE_STATUS.TRACKING ||
+    caseState.status === CASE_STATUS.QUERY_RAISED ||
+    caseState.status === CASE_STATUS.STALLED ||
+    caseState.status === CASE_STATUS.CALLED ||
+    caseState.status === CASE_STATUS.CLOSED;
 
   return (
     <div className="ns-workflow-shell">
@@ -735,31 +889,55 @@ export function WorkflowShellScreen() {
               </div>
             </div>
           )}
+        </section>
+      )}
 
-          {intakeSubStep === 'MADAD_KENDRA' && (
-            <div className="ns-madad-kendra-card" data-testid="madad-kendra-card">
-              <div className="ns-card-top-row">
-                <h2>{t('madadKendraTitle')}</h2>
-                <button
-                  type="button"
-                  className="ns-btn ns-speaker-btn"
-                  data-testid="sunao-madad-btn"
-                  onClick={() => speakText(t('madadKendraMessage'))}
-                >
-                  {t('sunaoBtn')}
-                </button>
-              </div>
-              <p>{t('madadKendraMessage')}</p>
-              <button
-                type="button"
-                className="ns-btn ns-btn-primary"
-                data-testid="madad-kendra-restart-btn"
-                onClick={handleFullReset}
-              >
-                {t('madadKendraRestart')}
-              </button>
-            </div>
-          )}
+      {/* ===================================================================
+          SCREEN (8): HELP CENTRE ("Madad Kendra") FALLBACK SCREEN
+          =================================================================== */}
+      {(intakeSubStep === 'MADAD_KENDRA' || showMadadKendraPanel) && (
+        <section
+          className="ns-card ns-madad-kendra-card"
+          data-testid="madad-kendra-card"
+          aria-label={t('madadKendraTitle')}
+        >
+          <div className="ns-card-top-row">
+            <h2>🏥 {t('madadKendraTitle')}</h2>
+            <button
+              type="button"
+              className="ns-btn ns-speaker-btn"
+              data-testid="sunao-madad-btn"
+              onClick={() =>
+                speakText(
+                  `${t('madadKendraTitle')}. ${t('madadKendraMessage')} ${t('madadKendraStep1')} ${t('madadKendraStep2')}`
+                )
+              }
+            >
+              {t('sunaoBtn')}
+            </button>
+          </div>
+          <p>{t('madadKendraMessage')}</p>
+          <ul className="ns-madad-steps">
+            <li>{t('madadKendraStep1')}</li>
+            <li>{t('madadKendraStep2')}</li>
+          </ul>
+          <div className="ns-two-big-buttons">
+            <a
+              href="tel:1800111555"
+              className="ns-btn ns-btn-large ns-btn-success"
+              data-testid="madad-kendra-call-btn"
+            >
+              {t('madadKendraCallBtn')}
+            </a>
+            <button
+              type="button"
+              className="ns-btn ns-btn-large ns-btn-primary"
+              data-testid="madad-kendra-restart-btn"
+              onClick={handleFullReset}
+            >
+              {t('madadKendraRestart')}
+            </button>
+          </div>
         </section>
       )}
 
@@ -996,7 +1174,6 @@ export function WorkflowShellScreen() {
 
       {/* ===================================================================
           SCREEN (5): DRAFT FORM SUMMARY + GATE 2
-          (VOICE ALONE IS NEVER ENOUGH TO SUBMIT)
           =================================================================== */}
       {(caseState.status === CASE_STATUS.FORM_FILLED ||
         caseState.status === CASE_STATUS.APPROVED) && (
@@ -1048,7 +1225,6 @@ export function WorkflowShellScreen() {
             ))}
           </div>
 
-          {/* GATE 2: Final Approval Gate */}
           <div className="ns-gate2-box" data-testid="gate-2-box">
             <div className="ns-gate2-banner" data-testid="gate-2-badge">
               🛡️ {t('gate2Badge')}
@@ -1058,7 +1234,6 @@ export function WorkflowShellScreen() {
               <>
                 <p className="ns-gate2-prompt">{t('gate2Prompt')}</p>
 
-                {/* If citizen said "Haan" by voice, agent repeats confirmation and shows Big Green Confirm Button */}
                 {voiceSaidYesAtGate2 && (
                   <div
                     className="ns-voice-gate2-confirm-banner"
@@ -1158,6 +1333,413 @@ export function WorkflowShellScreen() {
       )}
 
       {/* ===================================================================
+          SCREEN (6): TRACKING TIMELINE, DAY-10 QUERY, & +21 DIN TIME-SKIP (F4)
+          =================================================================== */}
+      {isPostSubmissionTrackingStage && (
+        <section
+          className="ns-card ns-screen-tracking"
+          data-testid="screen-tracking-timeline"
+          aria-label={t('trackingTimelineTitle')}
+        >
+          <div className="ns-card-top-row">
+            <h2 className="ns-title">📊 {t('trackingTimelineTitle')}</h2>
+            <button
+              type="button"
+              className="ns-btn ns-speaker-btn"
+              data-testid="sunao-tracking-btn"
+              onClick={() =>
+                speakText(
+                  `${t('trackingTimelineTitle')}. ${t(`status.${caseState.status}`)}`
+                )
+              }
+            >
+              {t('sunaoBtn')}
+            </button>
+          </div>
+
+          {/* 6-Stage Timeline with Big Icons and Text */}
+          <div className="ns-timeline-grid" data-testid="status-timeline-nodes">
+            {TIMELINE_STAGES.map((stage) => {
+              const isCurrent = caseState.status === stage.status;
+              const wasVisited = (caseState.history || []).includes(stage.status);
+              return (
+                <div
+                  key={stage.status}
+                  data-testid={`timeline-node-${stage.status}`}
+                  className={`ns-timeline-node ${
+                    isCurrent
+                      ? 'ns-timeline-node-current'
+                      : wasVisited
+                        ? 'ns-timeline-node-visited'
+                        : ''
+                  }`}
+                >
+                  <span className="ns-timeline-icon" aria-hidden="true">
+                    {stage.icon}
+                  </span>
+                  <span className="ns-timeline-label">
+                    {t(`status.${stage.status}`)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Demo Controls on Tracking Screen: Day 10 Query Toggle & +21 din Time-Skip */}
+          {caseState.status === CASE_STATUS.TRACKING && (
+            <div className="ns-tracking-demo-controls">
+              {caseState.callRecord?.referenceId && (
+                <div
+                  className="ns-call-schedule-banner"
+                  data-testid="tracking-ref-banner"
+                >
+                  📞 {t('callNextCheckSchedule')}
+                </div>
+              )}
+
+              <div className="ns-two-big-buttons">
+                <button
+                  type="button"
+                  className="ns-btn ns-btn-outline"
+                  data-testid="toggle-query-path-btn"
+                  onClick={handleRaiseQueryDay10}
+                >
+                  {t('trackingQueryToggleBtn')}
+                </button>
+                <button
+                  type="button"
+                  className="ns-btn ns-btn-accent"
+                  data-testid="time-skip-21-btn"
+                  onClick={handleTimeSkip21Days}
+                >
+                  {t('trackingTimeSkip21Btn')}
+                </button>
+              </div>
+
+              {caseState.callRecord?.referenceId && (
+                <div style={{ marginTop: '1rem' }}>
+                  <button
+                    type="button"
+                    className="ns-btn ns-btn-large ns-btn-success"
+                    data-testid="final-approve-close-btn"
+                    onClick={handleFinalApproveAndClose}
+                  >
+                    {t('trackingFinalApproveBtn')}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Query-Raised Path (Day 10): "Office ne ek sawal poocha" -> Camera Resubmit -> Back to TRACKING */}
+          {caseState.status === CASE_STATUS.QUERY_RAISED && (
+            <div className="ns-query-raised-card" data-testid="query-raised-card">
+              <h3>❓ {t('trackingQueryTitle')}</h3>
+              <p>{t('trackingQueryQuestion')}</p>
+              <div className="ns-camera-controls">
+                <label
+                  className="ns-btn ns-btn-primary"
+                  htmlFor="ns-query-camera-input"
+                >
+                  {t('trackingQueryResubmitBtn')}
+                </label>
+                <input
+                  id="ns-query-camera-input"
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  data-testid="query-camera-input"
+                  className="ns-sr-only"
+                  onChange={handleResubmitQueryDocument}
+                />
+                <button
+                  type="button"
+                  className="ns-btn ns-btn-success"
+                  data-testid="query-resubmit-doc-btn"
+                  onClick={handleResubmitQueryDocument}
+                >
+                  {t('trackingQueryResubmitBtn')}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STALLED after +21 din: "7 din se ruka hai" -> Start Office Call */}
+          {caseState.status === CASE_STATUS.STALLED && (
+            <div className="ns-stalled-card" data-testid="stalled-7-days-banner">
+              <h3>{t('trackingStalledAlert')}</h3>
+              <button
+                type="button"
+                className="ns-btn ns-btn-large ns-btn-primary"
+                data-testid="start-office-call-btn"
+                onClick={handleStartOfficeCall}
+              >
+                {t('trackingStartCallBtn')}
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ===================================================================
+          SCREEN (7): CALL SCREEN (Simulated Call — Judge Plays Office Officer)
+          =================================================================== */}
+      {(callSessionActive || caseState.status === CASE_STATUS.CALLED) && (
+        <section
+          className="ns-card ns-screen-call"
+          data-testid="screen-office-call"
+          aria-label={t('callScreenTitle')}
+        >
+          <div className="ns-card-top-row">
+            <div>
+              <h2 className="ns-title">📞 {t('callScreenTitle')}</h2>
+              <p className="ns-subtitle">{t('callScreenSubtitle')}</p>
+            </div>
+            <button
+              type="button"
+              className="ns-btn ns-speaker-btn"
+              data-testid="sunao-call-btn"
+              onClick={() =>
+                speakText(
+                  `${t('callScreenTitle')}. ${
+                    extractedRefId ? t('callNextCheckSchedule') : ''
+                  }`
+                )
+              }
+            >
+              {t('sunaoBtn')}
+            </button>
+          </div>
+
+          <div className="ns-call-transcript-box" data-testid="call-live-transcript">
+            {callTurns.map((turn, idx) => (
+              <div
+                key={`turn-${idx}`}
+                className="ns-call-turn-item"
+                data-testid={`call-turn-${idx}`}
+              >
+                <strong>{turn.speaker}:</strong> <span>{turn.text}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="ns-officer-reply-controls">
+            <button
+              type="button"
+              className="ns-btn ns-btn-outline"
+              data-testid="officer-reply-preset-btn"
+              onClick={() =>
+                handleSendOfficerReply(
+                  'Verified Jeevan Pramaan certificate JP-2026-9910. Reference REF-5521 logged. Will disburse in 3 days.'
+                )
+              }
+            >
+              {t('callOfficerPresetBtn')}
+            </button>
+
+            <div className="ns-text-fallback-row" style={{ marginTop: '0.75rem' }}>
+              <input
+                type="text"
+                className="ns-text-input"
+                data-testid="officer-reply-input"
+                value={officerInput}
+                onChange={(e) => setOfficerInput(e.target.value)}
+                placeholder={t('callOfficerInputPlaceholder')}
+                aria-label={t('callOfficerInputPlaceholder')}
+              />
+              <button
+                type="button"
+                className="ns-btn"
+                data-testid="officer-reply-mic-btn"
+                onClick={() => startListening()}
+              >
+                🎤
+              </button>
+              <button
+                type="button"
+                className="ns-btn ns-btn-primary"
+                data-testid="officer-reply-send-btn"
+                onClick={() => handleSendOfficerReply()}
+              >
+                {t('callOfficerSendBtn')}
+              </button>
+            </div>
+          </div>
+
+          {(extractedRefId || caseState.callRecord?.referenceId) && (
+            <div
+              className="ns-call-extracted-box"
+              data-testid="call-next-check-banner"
+            >
+              <p>
+                <strong>{t('callExtractedRefLabel')}:</strong>{' '}
+                <span data-testid="extracted-ref-id">
+                  {extractedRefId || caseState.callRecord?.referenceId}
+                </span>
+              </p>
+              <p>{t('callNextCheckSchedule')}</p>
+              <div className="ns-two-big-buttons">
+                <button
+                  type="button"
+                  className="ns-btn ns-btn-large ns-btn-primary"
+                  data-testid="call-return-tracking-btn"
+                  onClick={handleReturnToTrackingAfterCall}
+                >
+                  {t('callReturnToTrackingBtn')}
+                </button>
+                <button
+                  type="button"
+                  className="ns-btn ns-btn-large ns-btn-success"
+                  data-testid="call-direct-close-btn"
+                  onClick={handleFinalApproveAndClose}
+                >
+                  {t('trackingFinalApproveBtn')}
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ===================================================================
+          FINAL CLOSED SCREEN: "Pension phir chalu ho gayi"
+          =================================================================== */}
+      {caseState.status === CASE_STATUS.CLOSED && (
+        <section
+          className="ns-card ns-screen-closed"
+          data-testid="screen-closed"
+          aria-label={t('closedScreenTitle')}
+        >
+          <div className="ns-card-top-row">
+            <h2 className="ns-title">🎊 {t('closedScreenTitle')}</h2>
+            <button
+              type="button"
+              className="ns-btn ns-speaker-btn"
+              data-testid="sunao-closed-btn"
+              onClick={() =>
+                speakText(`${t('closedScreenTitle')}. ${t('closedScreenMessage')}`)
+              }
+            >
+              {t('sunaoBtn')}
+            </button>
+          </div>
+          <p className="ns-subtitle">{t('closedScreenMessage')}</p>
+          <div className="ns-masked-pii-row" style={{ justifyContent: 'center' }}>
+            <span className="ns-pii-pill ns-pill-success" data-testid="closed-app-id">
+              {t('applicationIdLabel')}: PEN-2026-88213
+            </span>
+            <span className="ns-pii-pill ns-pill-success" data-testid="closed-ref-id">
+              {t('callerRefLabel')}: REF-5521
+            </span>
+          </div>
+        </section>
+      )}
+
+      {/* ===================================================================
+          LETTER EXPLAINER UI ("Ye chitthi samjhao") + PORTAL RETRY X3 FAILURE UI
+          =================================================================== */}
+      <section
+        className="ns-card ns-letter-explainer-card"
+        data-testid="letter-explainer-card"
+        aria-label={t('letterExplainerTitle')}
+      >
+        <div className="ns-card-top-row">
+          <div>
+            <h2 className="ns-section-heading">{t('letterExplainerTitle')}</h2>
+            <p className="ns-phase-desc">{t('letterExplainerSubtitle')}</p>
+          </div>
+          <button
+            type="button"
+            className="ns-btn ns-speaker-btn"
+            data-testid="sunao-letter-btn"
+            onClick={() =>
+              speakText(
+                letterExplanation?.speech ||
+                  letterExplanation?.display ||
+                  t('letterExplainerSubtitle')
+              )
+            }
+          >
+            {t('sunaoBtn')}
+          </button>
+        </div>
+
+        <div className="ns-camera-controls">
+          <label className="ns-btn ns-btn-primary" htmlFor="ns-letter-camera-input">
+            {t('letterExplainerBtn')}
+          </label>
+          <input
+            id="ns-letter-camera-input"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            data-testid="letter-camera-input"
+            className="ns-sr-only"
+            onChange={handleExplainLetter}
+          />
+          <button
+            type="button"
+            className="ns-btn ns-btn-outline"
+            data-testid="explain-letter-btn"
+            onClick={handleExplainLetter}
+          >
+            {t('letterExplainerBtn')}
+          </button>
+          <button
+            type="button"
+            className="ns-btn ns-btn-outline"
+            data-testid="open-madad-kendra-btn"
+            onClick={() => setShowMadadKendraPanel((prev) => !prev)}
+          >
+            🏥 {t('madadKendraTitle')}
+          </button>
+          <button
+            type="button"
+            className="ns-btn ns-btn-outline"
+            data-testid="simulate-portal-failure-btn"
+            onClick={handleSimulatePortalFailure}
+          >
+            {t('portalRetrySimulateBtn')}
+          </button>
+        </div>
+
+        {letterExplanation && (
+          <div
+            className="ns-letter-explanation-box"
+            data-testid="letter-explanation-output"
+          >
+            <p>
+              <strong>{letterExplanation.display}</strong>
+            </p>
+            <p className="ns-phase-desc">
+              {letterExplanation.data?.sender} — {letterExplanation.data?.actionRequired} (
+              {letterExplanation.data?.deadline})
+            </p>
+          </div>
+        )}
+
+        {portalRetryAttempts.length > 0 && (
+          <div className="ns-portal-retry-box" data-testid="portal-retry-log">
+            <ul>
+              {portalRetryAttempts.map((attemptText, idx) => (
+                <li key={`retry-${idx}`} data-testid={`portal-retry-item-${idx + 1}`}>
+                  🔄 {attemptText}
+                </li>
+              ))}
+            </ul>
+            {portalFailedFinal && (
+              <p
+                className="ns-alert-error"
+                data-testid="portal-failure-final-msg"
+              >
+                {t('portalRetryFailedFinal')}
+              </p>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* ===================================================================
           Developer / Demo Step Bar & Agent Reply Inspector
           =================================================================== */}
       <section className="ns-card" aria-label={t('workflowPreviewTitle')}>
@@ -1248,7 +1830,7 @@ export function WorkflowShellScreen() {
             type="button"
             className="ns-btn"
             data-testid="btn-skip-days"
-            onClick={() => handleQuickAction('skipDaysStall')}
+            onClick={() => handleTimeSkip21Days()}
           >
             {t('actionSkipDaysStall')}
           </button>
