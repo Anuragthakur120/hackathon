@@ -1,0 +1,11 @@
+{
+  "name": "@nagarsathi/models",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node -e \"console.log('@nagarsathi/models: lint ok (M0 stub)')\"",
+    "test": "node -e \"console.log('@nagarsathi/models: test ok (M0 stub)')\"",
+    "build": "node -e \"console.log('@nagarsathi/models: build ok (M0 stub)')\""
+  }
+}

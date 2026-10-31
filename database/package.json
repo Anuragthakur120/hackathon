@@ -1,0 +1,11 @@
+{
+  "name": "@nagarsathi/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node -e \"console.log('@nagarsathi/database: lint ok (M0 stub)')\"",
+    "test": "node -e \"console.log('@nagarsathi/database: test ok (M0 stub)')\"",
+    "build": "node -e \"console.log('@nagarsathi/database: build ok (M0 stub)')\""
+  }
+}

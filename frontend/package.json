@@ -1,0 +1,11 @@
+{
+  "name": "@nagarsathi/frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node -e \"console.log('@nagarsathi/frontend: lint ok (M0 stub)')\"",
+    "test": "node -e \"console.log('@nagarsathi/frontend: test ok (M0 stub)')\"",
+    "build": "node -e \"console.log('@nagarsathi/frontend: build ok (M0 stub)')\""
+  }
+}

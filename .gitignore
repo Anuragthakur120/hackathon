@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+!.env.example
+uploads/
+dist/
+keys/
+*.pem
+coverage/
+*.log
+backend/storage/
+playwright-report/
+test-results/

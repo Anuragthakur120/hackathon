@@ -1,0 +1,19 @@
+{
+  "name": "nagarsathi",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NagarSathi (CITY-02) - Voice-first multilingual AI agent for Indian government services",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "models",
+    "database"
+  ],
+  "scripts": {
+    "lint": "npm run lint --workspaces",
+    "test": "npm run test --workspaces",
+    "build": "npm run build --workspaces",
+    "scan:secrets": "node scripts/scan-secrets.mjs",
+    "check": "npm run lint && npm run test && npm run build && npm run scan:secrets"
+  }
+}

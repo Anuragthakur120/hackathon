@@ -1,0 +1,11 @@
+{
+  "name": "@nagarsathi/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node -e \"console.log('@nagarsathi/backend: lint ok (M0 stub)')\"",
+    "test": "node -e \"console.log('@nagarsathi/backend: test ok (M0 stub)')\"",
+    "build": "node -e \"console.log('@nagarsathi/backend: build ok (M0 stub)')\""
+  }
+}
