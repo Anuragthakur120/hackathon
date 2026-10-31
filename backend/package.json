@@ -3,10 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "./src/index.js",
   "scripts": {
-    "lint": "node -e \"console.log('@nagarsathi/backend: lint ok (M0 stub)')\"",
-    "test": "node -e \"console.log('@nagarsathi/backend: test ok (M0 stub)')\"",
-    "build": "node -e \"console.log('@nagarsathi/backend: build ok (M0 stub)')\""
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "lint": "eslint src --max-warnings=0",
+    "test": "vitest run",
+    "build": "node src/validate-build.js"
+  },
+  "dependencies": {
+    "@nagarsathi/database": "*",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.16.0",
+    "eslint": "^9.16.0",
+    "globals": "^15.13.0",
+    "vitest": "^2.1.8"
   }
 }
-

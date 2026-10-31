@@ -48,25 +48,27 @@ This file tracks module-by-module progress, verification checklists, architectur
 
 ## Module D1: Database (MongoDB + Mongoose, 3 Data Layers, Catalog JSONs, Auto-Fill & Seed)
 
-### What Was Built
-- **Mongoose Models & Schemas (`database/src/models/index.js`)**:
-  - `User` (`phone` unique, `phoneMasked`, `language` default `mr-IN`, `role` default `citizen`).
-  - **Layer 1 — `Profile`**: Saved only when `consentGiven === true`; sensitive fields (`aadhaarEncrypted`, `mobileEncrypted`, `bankAccountEncrypted`) encrypted at rest with `AES-256-GCM` (`database/src/crypto.js`) and paired with last-4 masked strings (`XXXX-XXXX-4821`, `XXXXXX3210`, `XXXXXXXX9012`).
-  - **Layer 2 — `VaultDoc`**: Encrypted document metadata (`encryptedMetadata`), `type`, `status`, `issuedAt`, `maxAgeDays`, `uploadedAt`.
-  - **Layer 3 — `Case`**: 16-step statuses (`CASE_16_STEP_STATUSES`), `history[]`, `consent{caseConsent, saveProfileConsent}`, `approval{given, at, byPhysicalButton}` (enforcing Gate 1 & Gate 2 before `SUBMITTED`), `draftFields[]`, `appId`, `refNo`, `queryDetails`, `stallDetails`, `nextCheckAt`, and **30-day TTL index** (`expireAfterSeconds: 2592000` on `createdAt`).
-  - `AuditLog`: `actor`, `action`, `caseId`, `timestamp`, and automatically scrubbed `maskedPayload`.
-  - `ServiceCatalog`: Persisted service catalog definitions.
-- **Service Catalog JSONs & Validator (`database/catalog/*.json`, `database/src/validator.js`)**:
-  - `pension.json`, `scholarship.json` (14 fields), and `ration_card.json` with multilingual labels (`mr`/`hi`/`en`), `source` tags (`PROFILE`, `DOCUMENT`, `ASK_CITIZEN`, `DERIVED`, `DEFAULT`, `PORTAL_GENERATED`), `sensitive` flags, `required_if` conditional documents, `max_age_days` expiry rules, `portal` selectors, `tracking` (`stall_after_days: 7`), and `office_call` (`may_say` / `never_say`).
-- **Auto-Fill Engine (`database/src/autofill.js`)**:
-  - Populates fields from higher-trust sources first (`PROFILE` -> `DOCUMENT` -> `DERIVED` -> `DEFAULT` -> `ASK_CITIZEN`) and evaluates `required_if` and `max_age_days`.
-- **Seed Script & Cascading Delete (`database/src/seed.js`, `database/src/deleteAllData.js`)**:
-  - Seeds demo citizen Ramabai Kulkarni, her encrypted Profile and VaultDocs, the 3 service catalogs, and `CASE-DEMO-001` (`PEN-2026-88213`, `REF-5521`) with Day-10 query and +21-day stall triggers.
-  - `deleteAllCitizenData(userId)` removes records across all 3 data layers (`Profile`, `VaultDoc`, `Case`, `User`) and logs an anonymized `AuditLog` entry.
-
 ### Verification Checklist (D1)
+- [x] **All D1 checks & push**: PASS (`f3647d5`, tag `D1-passed`)
+
+---
+
+## Module B1: Backend Auth, Privacy & Base API
+
+### What Was Built
+- **Auth & Citizen Isolation (`backend/src/auth.js`, `backend/src/routes/coreRoutes.js`)**:
+  - Phone + OTP login (`MOCK_OTP=123456` when `OTP_MODE=mock`), `HS256` JWT signed with `JWT_SECRET` in `httpOnly` cookie `ns_token`, `role=citizen`, and strict cross-user ownership checks (`403 CROSS_USER_ACCESS_DENIED`).
+- **Privacy Helpers (`backend/src/privacy.js`)**:
+  - Last-4 masking for Aadhaar (`XXXX-XXXX-4821`), phone (`XXXXXX3210`), and bank account (`XXXXXXXX9012`) in logs and API responses (`sanitizeForApiResponse`).
+  - `AES-256-GCM` encryption (`encryptWithEnvKey` / `decryptWithEnvKey`), `maskForLlm` scrubber ensuring full Aadhaar/phone/bank numbers are never sent to the LLM, and masking request logger (`createRequestLogger`).
+- **Background Audit Log Middleware (`backend/src/auditMiddleware.js`)**:
+  - Non-blocking background `AuditLog` persistence (`enqueueAuditLog`, `auditLogMiddleware`, `flushPendingAudits`).
+- **Core Routes & Middleware (`backend/src/routes/coreRoutes.js`, `backend/src/middleware.js`, `backend/src/app.js`)**:
+  - `/auth`, `/profile` (with save-consent enforcement and `"delete-all-my-data"`), `/vault` (encrypted document upload), `/services` (validated catalogs), `/cases/:caseId`, and `/health`, plus CORS for `FRONTEND_ORIGIN`, rate limiting, and central error handling.
+
+### Verification Checklist (B1)
 - [x] **Install dependencies (`npm install`)**: PASS
 - [x] **Lint all workspaces (`npm run lint`)**: PASS (`eslint src --max-warnings=0`)
-- [x] **Regression (F1–F5) + D1 unit tests (`npm run test`)**: PASS (22 frontend tests + 5 database tests = 27/27 passed)
-- [x] **Build & catalog validation (`npm run build`)**: PASS
+- [x] **Regression (F1–F5, D1) + B1 unit/API tests (`npm run test`)**: PASS (22 frontend + 5 database + 4 backend = 31/31 tests passed)
+- [x] **Build validation (`npm run build`)**: PASS
 - [x] **Secret scan (`npm run scan:secrets`)**: PASS
