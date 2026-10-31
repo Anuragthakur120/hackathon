@@ -159,3 +159,4 @@ export function assertSameCitizen(req, res, targetUserId) {
   }
   return true;
 }
+

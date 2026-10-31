@@ -9,17 +9,20 @@ import {
   centralErrorHandler,
 } from './middleware.js';
 import { createCoreRouter } from './routes/coreRoutes.js';
+import { createCaseRouter } from './routes/caseRoutes.js';
+import { defaultPortalAdapter } from './portalAdapter.js';
 
 /**
  * Creates the Express application with CORS, rate limiting, masking request logger,
  * background audit log middleware, core routes (/auth, /profile, /vault, /services, /health),
- * and central error handling.
+ * case engine routes (/cases/*, /demo/*), and central error handling.
  */
 export function createApp({
   rateLimitMax = 120,
   rateLimitWindowMs = 60_000,
   logSink = [],
   allowedOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
+  portalAdapter = defaultPortalAdapter,
 } = {}) {
   const app = express();
 
@@ -30,8 +33,12 @@ export function createApp({
   app.use(auditLogMiddleware);
 
   const coreRouter = createCoreRouter();
+  const caseRouter = createCaseRouter({ portalAdapter });
+
   app.use('/', coreRouter);
+  app.use('/', caseRouter);
   app.use('/api', coreRouter);
+  app.use('/api', caseRouter);
 
   app.use(centralErrorHandler);
 
@@ -153,3 +160,4 @@ export function invokeApp(
     }
   });
 }
+

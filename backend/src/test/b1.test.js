@@ -296,3 +296,4 @@ describe('Module B1: Backend Auth (Phone+OTP, httpOnly JWT), Privacy (Masking, A
     expect(rateLimitedRes.body.error).toBe('RATE_LIMIT_EXCEEDED');
   });
 });
+

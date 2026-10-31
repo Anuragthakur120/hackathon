@@ -87,3 +87,4 @@ export function centralErrorHandler(err, _req, res, _next) {
     data: { ok: false },
   });
 }
+

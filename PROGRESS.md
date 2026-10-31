@@ -55,20 +55,30 @@ This file tracks module-by-module progress, verification checklists, architectur
 
 ## Module B1: Backend Auth, Privacy & Base API
 
-### What Was Built
-- **Auth & Citizen Isolation (`backend/src/auth.js`, `backend/src/routes/coreRoutes.js`)**:
-  - Phone + OTP login (`MOCK_OTP=123456` when `OTP_MODE=mock`), `HS256` JWT signed with `JWT_SECRET` in `httpOnly` cookie `ns_token`, `role=citizen`, and strict cross-user ownership checks (`403 CROSS_USER_ACCESS_DENIED`).
-- **Privacy Helpers (`backend/src/privacy.js`)**:
-  - Last-4 masking for Aadhaar (`XXXX-XXXX-4821`), phone (`XXXXXX3210`), and bank account (`XXXXXXXX9012`) in logs and API responses (`sanitizeForApiResponse`).
-  - `AES-256-GCM` encryption (`encryptWithEnvKey` / `decryptWithEnvKey`), `maskForLlm` scrubber ensuring full Aadhaar/phone/bank numbers are never sent to the LLM, and masking request logger (`createRequestLogger`).
-- **Background Audit Log Middleware (`backend/src/auditMiddleware.js`)**:
-  - Non-blocking background `AuditLog` persistence (`enqueueAuditLog`, `auditLogMiddleware`, `flushPendingAudits`).
-- **Core Routes & Middleware (`backend/src/routes/coreRoutes.js`, `backend/src/middleware.js`, `backend/src/app.js`)**:
-  - `/auth`, `/profile` (with save-consent enforcement and `"delete-all-my-data"`), `/vault` (encrypted document upload), `/services` (validated catalogs), `/cases/:caseId`, and `/health`, plus CORS for `FRONTEND_ORIGIN`, rate limiting, and central error handling.
-
 ### Verification Checklist (B1)
+- [x] **All B1 checks & push**: PASS (`90bf34e`, tag `B1-passed`)
+
+---
+
+## Module B2: Backend Case State Machine, Guards & Mock Portal
+
+### What Was Built
+- **16-Step Case State Machine (`backend/src/caseMachine.js`)**:
+  - Enforces legal transitions across `INTAKE -> SERVICE_CONFIRMED -> CONSENTED -> DOCS_COLLECTING -> DOCS_READY -> FORM_FILLED -> APPROVED -> SUBMITTED -> TRACKING -> QUERY_RAISED -> STALLED -> CALLED -> TRACKING -> CLOSED`.
+  - Rejects illegal transitions (`409 ILLEGAL_CASE_TRANSITION`) and logs an `AuditLog` entry on every transition.
+- **Gate 1 (Consent) & `requireConsent(scope)` Middleware (`backend/src/consentMiddleware.js`, `backend/src/routes/caseRoutes.js`)**:
+  - Records `GATE1_PERMISSIONS` (`canDo` / `cannotDo`).
+  - Consent `NO` halts the flow and deletes the uncommitted case so nothing is saved.
+  - Separate `saveProfileConsent` stored independently from `caseConsent`.
+  - `requireConsent(scope)` blocks `upload`, `fill`, `submit`, and `call` with `403 CONSENT_REQUIRED` + audit entry when consent is missing.
+- **Gate 2 (Approval) & Portal Adapter + Retry x3 (`backend/src/portalAdapter.js`, `backend/src/routes/caseRoutes.js`)**:
+  - `submitCaseToPortal()` throws `APPROVAL_REQUIRED` unless `case.approval.given === true && case.approval.byPhysicalButton === true` (voice-only approval is never enough).
+  - `InMemoryPortalAdapter` implements `fillDraft`, `submit` (`PEN-2026-88213`), and `getStatus` (Day-10 query, +21-day stall, failure injection) wrapped in `withPortalRetry` (3 retries: `dobara koshish 1/3`, `2/3`, `3/3`).
+  - Time-skip endpoint (`POST /demo/skip-days` behind `DEMO_MODE` env flag) advances +21 days to trigger `STALLED`, and tracker scheduling sets `nextCheckAt` (+3 days) and loops back to `TRACKING` until `CLOSED`.
+
+### Verification Checklist (B2)
 - [x] **Install dependencies (`npm install`)**: PASS
 - [x] **Lint all workspaces (`npm run lint`)**: PASS (`eslint src --max-warnings=0`)
-- [x] **Regression (F1–F5, D1) + B1 unit/API tests (`npm run test`)**: PASS (22 frontend + 5 database + 4 backend = 31/31 tests passed)
+- [x] **Regression (F1–F5, D1, B1) + B2 unit/API tests (`npm run test`)**: PASS (22 frontend + 5 database + 9 backend = 36/36 tests passed)
 - [x] **Build validation (`npm run build`)**: PASS
 - [x] **Secret scan (`npm run scan:secrets`)**: PASS
