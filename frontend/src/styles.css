@@ -10,6 +10,10 @@
   --ns-danger: #b91c1c;
   --ns-border: #0f172a;
   --ns-focus: #f59e0b;
+  --ns-gate1-bg: #eef2ff;
+  --ns-gate1-border: #4338ca;
+  --ns-gate2-bg: #fff7ed;
+  --ns-gate2-border: #c2410c;
 }
 
 * {
@@ -117,6 +121,11 @@ body {
   color: #ffffff;
 }
 
+.ns-btn-danger {
+  background: var(--ns-danger);
+  color: #ffffff;
+}
+
 .ns-btn-outline {
   background: #fef3c7;
   color: var(--ns-text);
@@ -125,7 +134,7 @@ body {
 .ns-btn-large {
   width: 100%;
   min-height: 68px;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
 }
 
 .ns-lang-chip-active {
@@ -189,14 +198,14 @@ body {
 }
 
 .ns-title {
-  font-size: 2rem;
+  font-size: 1.85rem;
   margin: 0.5rem 0;
 }
 
 .ns-subtitle {
   font-size: 1.15rem;
   color: var(--ns-text-muted);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .ns-huge-lang-list {
@@ -290,12 +299,17 @@ body {
   color: #78350f;
 }
 
-.ns-safety-banner {
-  margin-top: 0.75rem;
+.ns-status-control-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.75rem 0;
   padding: 0.75rem 1rem;
-  background: #fffbeb;
-  border-left: 6px solid #d97706;
-  font-weight: 700;
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
 }
 
 .ns-status-row {
@@ -303,8 +317,7 @@ body {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
+  font-size: 1.1rem;
 }
 
 .ns-status-value {
@@ -312,6 +325,23 @@ body {
   color: #facc15;
   padding: 0.3rem 0.75rem;
   border-radius: 8px;
+}
+
+.ns-human-control-chip {
+  background: #fae8ff;
+  border: 2px solid #86198f;
+  color: #4a044e;
+  font-weight: 800;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+}
+
+.ns-safety-banner {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #fffbeb;
+  border-left: 6px solid #d97706;
+  font-weight: 700;
 }
 
 .ns-alert-error {
@@ -322,6 +352,341 @@ body {
   border-radius: 10px;
   color: #7f1d1d;
   font-weight: 800;
+}
+
+/* Screen 2: Conversation & Intake */
+.ns-mic-hero {
+  text-align: center;
+  padding: 1.25rem;
+  background: #eff6ff;
+  border: 3px dashed var(--ns-primary);
+  border-radius: 16px;
+  margin-bottom: 1rem;
+}
+
+.ns-mic-huge-btn {
+  min-height: 88px;
+  font-size: 1.4rem;
+  padding: 1rem 2rem;
+  background: #1e3a8a;
+  color: #ffffff;
+  border-radius: 999px;
+}
+
+.ns-mic-caption {
+  margin: 0.5rem 0 0;
+  font-weight: 700;
+  color: var(--ns-text-muted);
+}
+
+.ns-preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.ns-text-fallback-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.ns-text-input {
+  flex: 1;
+  min-height: 56px;
+  padding: 0.75rem 1rem;
+  font-size: 1.05rem;
+  border: 2px solid var(--ns-border);
+  border-radius: 10px;
+}
+
+.ns-message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.ns-message-bubble {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  border: 2px solid var(--ns-border);
+}
+
+.ns-bubble-citizen {
+  background: #dbeafe;
+  align-self: flex-end;
+}
+
+.ns-bubble-agent {
+  background: #fef9c3;
+  align-self: flex-start;
+}
+
+.ns-bubble-text {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.ns-speaker-btn {
+  min-height: 56px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.95rem;
+}
+
+.ns-two-big-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.ns-clarify-box,
+.ns-service-confirm-box,
+.ns-madad-kendra-card {
+  padding: 1.25rem;
+  border: 3px solid var(--ns-primary);
+  border-radius: 14px;
+  background: #f8fafc;
+  margin-top: 1rem;
+}
+
+.ns-madad-kendra-card {
+  background: #fff1f2;
+  border-color: var(--ns-danger);
+}
+
+/* Screen 3: Gate 1 Consent (Distinct Indigo/Purple Theme) */
+.ns-gate1-card {
+  background: var(--ns-gate1-bg);
+  border-color: var(--ns-gate1-border);
+  border-width: 4px;
+}
+
+.ns-gate1-banner {
+  display: inline-block;
+  background: var(--ns-gate1-border);
+  color: #ffffff;
+  font-weight: 900;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.ns-consent-lists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.ns-can-do-box {
+  background: #dcfce7;
+  border: 2px solid var(--ns-success);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.ns-cannot-do-box {
+  background: #fee2e2;
+  border: 2px solid var(--ns-danger);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.ns-save-profile-box {
+  background: #ffffff;
+  border: 3px solid var(--ns-gate1-border);
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-top: 1rem;
+}
+
+.ns-save-profile-note {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* Screen 4: Documents Checklist */
+.ns-doc-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ns-doc-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.1rem;
+  background: #f8fafc;
+  border: 2px solid var(--ns-border);
+  border-radius: 12px;
+}
+
+.ns-doc-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.ns-doc-masked {
+  font-family: monospace;
+  font-size: 1rem;
+  color: var(--ns-text-muted);
+}
+
+.ns-camera-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.ns-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.ns-docs-ready-footer {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  background: #dcfce7;
+  border: 3px solid var(--ns-success);
+  border-radius: 12px;
+}
+
+.ns-docs-ready-msg {
+  font-weight: 800;
+  margin: 0 0 0.75rem;
+}
+
+/* Screen 5: Draft Summary & Gate 2 (Distinct Warm Amber/Orange Theme) */
+.ns-draft-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ns-draft-only-badge {
+  background: #fef08a;
+  border: 3px solid #ca8a04;
+  color: #713f12;
+  font-weight: 900;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+}
+
+.ns-draft-fields-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-bottom: 1.5rem;
+}
+
+.ns-draft-field-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: #f8fafc;
+  border: 2px solid #64748b;
+  border-radius: 10px;
+}
+
+.ns-draft-field-label {
+  margin-right: 0.5rem;
+  color: var(--ns-text-muted);
+}
+
+.ns-source-tag {
+  background: #0f172a;
+  color: #38bdf8;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+}
+
+.ns-gate2-box {
+  background: var(--ns-gate2-bg);
+  border: 4px solid var(--ns-gate2-border);
+  border-radius: 14px;
+  padding: 1.25rem;
+}
+
+.ns-gate2-banner {
+  display: inline-block;
+  background: var(--ns-gate2-border);
+  color: #ffffff;
+  font-weight: 900;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.ns-gate2-prompt {
+  font-weight: 800;
+  font-size: 1.15rem;
+}
+
+.ns-halted-box {
+  background: #fee2e2;
+  border: 3px solid var(--ns-danger);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-top: 1rem;
+}
+
+/* Screen 10: Submitted Screen */
+.ns-screen-submitted {
+  background: #f0fdf4;
+  border-color: var(--ns-success);
+  text-align: center;
+}
+
+.ns-big-app-id-box {
+  margin: 1.5rem auto;
+  padding: 1.5rem;
+  background: #0f172a;
+  color: #facc15;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ns-big-app-id-label {
+  font-size: 1rem;
+  color: #e2e8f0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ns-big-app-id-value {
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
 }
 
 .ns-action-grid {
@@ -359,4 +724,3 @@ body {
   font-weight: 700;
   border-top: 3px solid var(--ns-border);
 }
-

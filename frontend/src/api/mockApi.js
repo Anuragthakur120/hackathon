@@ -16,31 +16,51 @@ const COPY = {
       speech: 'नमस्कार रमाबाई, तुमचे स्वागत आहे.',
     },
     intake: {
-      display: 'तुमचे वृद्धापकाळ निवृत्तीवेतन (पेन्शन) थांबले आहे. आपण "पेन्शन पुनर्संचयित सेवा" सुरू करूया का?',
-      speech: 'रमाबाई, तुमचे पेन्शन थांबले आहे हे मला समजले. आपण पेन्शन पुन्हा सुरू करण्याचा अर्ज करूया का?',
+      display: 'तुमचे पेन्शन थांबले आहे हे समजले. कृपया सांगा: कोणती पेन्शन? (Kaunsi pension?)',
+      speech: 'रमाबाई, तुमचे पेन्शन थांबले आहे हे समजले. कोणती पेन्शन बंद झाली आहे?',
+    },
+    intakeUnknownRetry: {
+      display: 'मला तुमची समस्या नीट समजली नाही. कृपया पुन्हा एकदा स्पष्टपणे सांगा.',
+      speech: 'क्षमा करा, मला समजले नाही. कृपया पुन्हा एकदा सांगा.',
+    },
+    intakeUnknownMadad: {
+      display: 'आम्हाला तुमची सेवा निश्चित करता आली नाही. कृपया मदत केंद्राशी (Madad Kendra) संपर्क साधा.',
+      speech: 'कृपया जवळच्या मदत केंद्राशी संपर्क साधा.',
     },
     answer: {
-      display: 'तुमची माहिती नोंदवली आहे: गेल्या ३ महिन्यांपासून पेन्शन जमा झालेली नाही.',
-      speech: 'ठीक आहे, गेल्या तीन महिन्यांपासून पेन्शन आलेली नाही हे मी नोंदवले आहे.',
+      display: 'तुमची माहिती नोंदवली आहे: वृद्धापकाळ पेन्शन. तुम्हाला पेन्शन पुन्हा सुरू करायची आहे, बरोबर?',
+      speech: 'तुम्हाला वृद्धापकाळ पेन्शन पुन्हा सुरू करायची आहे, बरोबर ना?',
     },
     confirmService: {
-      display: 'पेन्शन पुनर्संचयित सेवा निश्चित केली आहे (विश्वासार्हता: ९६%).',
-      speech: 'पेन्शन पुनर्संचयित सेवा निश्चित झाली आहे. आता पुढे जाऊया.',
+      display: 'पेन्शन पुनर्संचयित सेवा निश्चित केली आहे (विश्वासार्हता: ९६%). आता संमती द्या (Gate 1).',
+      speech: 'पेन्शन पुनर्संचयित सेवा निश्चित झाली आहे. आता कृपया तुमची संमती द्या.',
     },
     consent: {
-      display: 'तुमची संमती नोंदवली आहे. आम्ही तुमची कागदपत्रे केवळ या अर्जासाठी वापरू.',
+      display: 'तुमची संमती नोंदवली आहे (Gate 1). आम्ही तुमची कागदपत्रे केवळ या अर्जासाठी वापरू.',
       speech: 'धन्यवाद रमाबाई, तुमची संमती नोंदवली गेली आहे.',
+    },
+    consentDeclined: {
+      display: 'तुम्ही संमती नाकारली आहे. कोणतीही माहिती जतन केलेली नाही.',
+      speech: 'ठीक आहे, आम्ही कोणतीही माहिती जतन केलेली नाही.',
     },
     docsCollecting: {
       display: 'कागदपत्रे तपासणी सुरू आहे: आधार कार्ड (XXXX-XXXX-4821), बँक पासबुक (XXXXXXXX9012), हयातीचा दाखला.',
       speech: 'आधार कार्ड आणि बँक खात्याची माहिती तपासली जात आहे.',
     },
+    docsBlurry: {
+      display: 'फोटो अंधूक आहे, कृपया पुन्हा काढा (Photo dhundhli hai, dobara).',
+      speech: 'फोटो अंधूक आला आहे, कृपया पुन्हा एकदा स्पष्ट फोटो काढा.',
+    },
+    docsExpired: {
+      display: 'हयातीचा दाखला जुना आहे, कृपया चालू वर्षाचा दाखला द्या (Life certificate purana hai).',
+      speech: 'हयातीचा दाखला जुना आहे, कृपया नवीन दाखल्याचा फोटो काढा.',
+    },
     docsReady: {
-      display: 'सर्व ३ आवश्यक कागदपत्रे पडताळली आणि तयार आहेत.',
+      display: 'सर्व ३ आवश्यक कागदपत्रे पडताळली आणि तयार आहेत (DOCS_READY).',
       speech: 'तुमची सर्व कागदपत्रे तयार आहेत. आता आपण अर्जाचा मसुदा भरूया.',
     },
     fillDraft: {
-      display: 'अर्जाचा मसुदा (DRAFT) तयार केला आहे. कृपया तपासा आणि मंजुरी द्या. तुमच्या मंजुरीशिवाय अर्ज सादर केला जाणार नाही.',
+      display: 'अर्जाचा मसुदा (DRAFT) तयार केला आहे. कृपया तपासा आणि मंजुरी द्या (Gate 2). तुमच्या मंजुरीशिवाय अर्ज सादर केला जाणार नाही.',
       speech: 'रमाबाई, तुमचा अर्जाचा मसुदा तयार आहे. कृपया तो तपासून मंजुरी द्या.',
     },
     approve: {
@@ -106,31 +126,51 @@ const COPY = {
       speech: 'नमस्ते रमाबाई, आपका स्वागत है।',
     },
     intake: {
-      display: 'आपकी वृद्धावस्था पेंशन रुक गई है। क्या हम "पेंशन बहाली सेवा" शुरू करें?',
-      speech: 'रमाबाई, आपकी पेंशन रुक गई है। क्या हम पेंशन फिर से शुरू करने का आवेदन करें?',
+      display: 'आपकी पेंशन रुक गई है। कृपया बताएँ: कौनसी पेंशन? (Kaunsi pension?)',
+      speech: 'रमाबाई, आपकी पेंशन रुक गई है। कृपया बताएँ कौनसी पेंशन बंद हुई है?',
+    },
+    intakeUnknownRetry: {
+      display: 'हमें आपकी समस्या स्पष्ट नहीं हुई। कृपया एक बार फिर से बताएँ।',
+      speech: 'क्षमा करें, समझ नहीं आया। कृपया फिर से बताएँ।',
+    },
+    intakeUnknownMadad: {
+      display: 'हम सेवा की पहचान नहीं कर सके। कृपया मदद केंद्र (Madad Kendra) से संपर्क करें।',
+      speech: 'कृपया नज़दीकी मदद केंद्र से संपर्क करें।',
     },
     answer: {
-      display: 'आपका उत्तर दर्ज किया गया: पिछले 3 महीनों से पेंशन जमा नहीं हुई है।',
-      speech: 'ठीक है, पिछले तीन महीनों से पेंशन नहीं आई है, यह दर्ज कर लिया गया है।',
+      display: 'आपका उत्तर दर्ज किया गया: वृद्धावस्था पेंशन। आपको पेंशन चालू करवानी है, सही?',
+      speech: 'आपको वृद्धावस्था पेंशन फिर से चालू करवानी है, सही?',
     },
     confirmService: {
-      display: 'पेंशन बहाली सेवा की पुष्टि हो गई है (विश्वसनीयता: 96%)।',
-      speech: 'पेंशन बहाली सेवा पक्की हो गई है। अब आगे बढ़ते हैं।',
+      display: 'पेंशन बहाली सेवा की पुष्टि हो गई है (विश्वसनीयता: 96%)। अब सहमति दें (Gate 1)।',
+      speech: 'पेंशन बहाली सेवा पक्की हो गई है। अब कृपया सहमति दें।',
     },
     consent: {
-      display: 'आपकी सहमति दर्ज कर ली गई है। हम आपके दस्तावेज़ केवल इसी आवेदन के लिए उपयोग करेंगे।',
+      display: 'आपकी सहमति दर्ज कर ली गई है (Gate 1)। हम आपके दस्तावेज़ केवल इसी आवेदन के लिए उपयोग करेंगे।',
       speech: 'धन्यवाद रमाबाई, आपकी सहमति दर्ज हो गई है।',
+    },
+    consentDeclined: {
+      display: 'आपने सहमति नहीं दी। कोई भी जानकारी सेव नहीं की गई है।',
+      speech: 'ठीक है, कोई भी डेटा सेव नहीं किया गया है।',
     },
     docsCollecting: {
       display: 'दस्तावेज़ जाँच जारी: आधार कार्ड (XXXX-XXXX-4821), बैंक पासबुक (XXXXXXXX9012), जीवन प्रमाण पत्र।',
       speech: 'आधार कार्ड और बैंक खाते के दस्तावेज़ जाँचे जा रहे हैं।',
     },
+    docsBlurry: {
+      display: 'फोटो धुंधली है, दोबारा खींचें (Photo dhundhli hai, dobara)।',
+      speech: 'फोटो धुंधली है, कृपया दोबारा साफ फोटो खींचें।',
+    },
+    docsExpired: {
+      display: 'जीवन प्रमाण पत्र पुराना है, कृपया नया प्रमाण पत्र दें (Life certificate purana hai)।',
+      speech: 'जीवन प्रमाण पत्र पुराना है, कृपया नया प्रमाण पत्र दिखाएँ।',
+    },
     docsReady: {
-      display: 'तीनों आवश्यक दस्तावेज़ सत्यापित और तैयार हैं।',
+      display: 'तीनों आवश्यक दस्तावेज़ सत्यापित और तैयार हैं (DOCS_READY)।',
       speech: 'आपके सभी दस्तावेज़ तैयार हैं। अब हम ड्राफ्ट फॉर्म भरेंगे।',
     },
     fillDraft: {
-      display: 'फॉर्म का ड्राफ्ट (DRAFT) तैयार है। कृपया जाँच करें और मंज़ूरी दें। आपकी मंज़ूरी के बिना फॉर्म सबमिट नहीं होगा।',
+      display: 'फॉर्म का ड्राफ्ट (DRAFT) तैयार है। कृपया जाँच करें और मंज़ूरी दें (Gate 2)। आपकी मंज़ूरी के बिना फॉर्म सबमिट नहीं होगा।',
       speech: 'रमाबाई, आपके फॉर्म का ड्राफ्ट तैयार है। कृपया इसे मंज़ूरी दें।',
     },
     approve: {
@@ -196,31 +236,51 @@ const COPY = {
       speech: 'Welcome Ramabai, your account is verified.',
     },
     intake: {
-      display: 'Detected issue: Old-age pension stopped. Shall we proceed with "Pension Restoration Service"?',
-      speech: 'Ramabai, I understand your pension has stopped. Shall we start a Pension Restoration application?',
+      display: 'Detected issue: Pension stopped. Clarifying question: Kaunsi pension? (Which pension scheme?)',
+      speech: 'Ramabai, I understand your pension has stopped. Which pension scheme were you receiving?',
+    },
+    intakeUnknownRetry: {
+      display: 'I could not confidently identify the service. Please describe your issue once more.',
+      speech: 'I could not understand the service needed. Please try telling me once more.',
+    },
+    intakeUnknownMadad: {
+      display: 'Service still unclear after retry. Routing to Madad Kendra (Citizen Help Center).',
+      speech: 'Please connect with the Madad Kendra help center for direct assistance.',
     },
     answer: {
-      display: 'Recorded your answer: Pension has not been credited for the past 3 months.',
-      speech: 'Got it, I have recorded that your pension has been stopped for three months.',
+      display: 'Recorded: Old-Age Pension. Aapko pension chalu karwani hai, sahi? (Confirm Pension Restoration?)',
+      speech: 'Recorded Old-Age Pension. You want to restore your pension, right?',
     },
     confirmService: {
-      display: 'Confirmed service: Pension Restoration (Confidence: 96%).',
-      speech: 'Pension Restoration service is confirmed. Let us move to the next step.',
+      display: 'Confirmed service: Pension Restoration (Confidence: 96%). Proceed to Gate 1 (Consent).',
+      speech: 'Pension Restoration service is confirmed. Please review and give your consent.',
     },
     consent: {
-      display: 'Informed consent recorded. Your documents will only be used to prepare this pension restoration application.',
+      display: 'Informed consent recorded (Gate 1). Your documents will only be used to prepare this pension restoration application.',
       speech: 'Thank you Ramabai, your consent has been recorded.',
+    },
+    consentDeclined: {
+      display: 'Consent declined. Flow stopped and nothing has been saved.',
+      speech: 'Understood. We have stopped the process and saved nothing.',
     },
     docsCollecting: {
       display: 'Checking documents: Aadhaar Card (XXXX-XXXX-4821), Bank Passbook (XXXXXXXX9012), Life Certificate.',
       speech: 'Checking your Aadhaar card, bank passbook, and life certificate.',
     },
+    docsBlurry: {
+      display: 'Photo dhundhli hai, dobara (Photo is blurry, please retake a clear photo).',
+      speech: 'The photo is blurry, please take it again clearly.',
+    },
+    docsExpired: {
+      display: 'Life certificate purana hai (Life certificate is outdated, please capture the renewed certificate).',
+      speech: 'The life certificate is old, please provide the renewed certificate.',
+    },
     docsReady: {
-      display: 'All 3 required documents are verified and ready.',
+      display: 'All 3 required documents are verified and ready (DOCS_READY).',
       speech: 'All your documents are verified and ready. Now we can fill the draft form.',
     },
     fillDraft: {
-      display: 'Portal form filled as a DRAFT only. Please review and approve. We never submit without your explicit approval.',
+      display: 'Portal form filled as a DRAFT only. Please review and approve at Gate 2. We never submit without your explicit approval.',
       speech: 'Ramabai, I have prepared the draft form. Please review and approve it before submission.',
     },
     approve: {
@@ -284,8 +344,9 @@ function getCopy(lang, key) {
 }
 
 let mockStore = createInitialCaseState('mr-IN');
+let unknownAttempts = 0;
 
-const DEFAULT_CHECKLIST = [
+export const DEFAULT_CHECKLIST = [
   {
     id: 'aadhaar_card',
     name: 'Aadhaar Card',
@@ -306,18 +367,65 @@ const DEFAULT_CHECKLIST = [
   },
 ];
 
-const DEFAULT_DRAFT = {
+export const DEFAULT_DRAFT = {
   isDraft: true,
   serviceId: 'pension_restoration',
   portalName: 'Maharashtra Social Justice & Special Assistance Portal (Mock)',
   fields: [
-    { key: 'applicantName', label: 'Applicant Name', value: 'Ramabai Kulkarni' },
-    { key: 'age', label: 'Age', value: '68' },
-    { key: 'scheme', label: 'Scheme', value: 'Sanjay Gandhi Niradhar / Old Age Pension' },
-    { key: 'aadhaarMasked', label: 'Aadhaar Number (Masked)', value: 'XXXX-XXXX-4821' },
-    { key: 'bankAccountMasked', label: 'Bank Account (Masked)', value: 'XXXXXXXX9012' },
-    { key: 'reasonForStop', label: 'Reason for Interruption', value: 'Annual Life Certificate Renewal Pending' },
-    { key: 'lifeCertId', label: 'Jeevan Pramaan ID', value: 'JP-2026-9910' },
+    {
+      key: 'applicantName',
+      label: 'Applicant Name',
+      value: 'Ramabai Kulkarni',
+      source: 'PROFILE',
+    },
+    {
+      key: 'aadhaarMasked',
+      label: 'Aadhaar Number (Masked)',
+      value: 'XXXX-XXXX-4821',
+      source: 'PROFILE',
+    },
+    {
+      key: 'phoneMasked',
+      label: 'Mobile Number (Masked)',
+      value: 'XXXXXX3210',
+      source: 'PROFILE',
+    },
+    {
+      key: 'bankAccountMasked',
+      label: 'Bank Account Number (Masked)',
+      value: 'XXXXXXXX9012',
+      source: 'DOCUMENT',
+    },
+    {
+      key: 'lifeCertId',
+      label: 'Jeevan Pramaan Certificate ID',
+      value: 'JP-2026-9910',
+      source: 'DOCUMENT',
+    },
+    {
+      key: 'schemeType',
+      label: 'Pension Scheme Selected',
+      value: 'Old-Age Pension (Sanjay Gandhi Niradhar)',
+      source: 'ASK_CITIZEN',
+    },
+    {
+      key: 'seniorCategory',
+      label: 'Age & Senior Citizen Category',
+      value: '68 Years — Priority Senior Citizen',
+      source: 'DERIVED',
+    },
+    {
+      key: 'applicationCategory',
+      label: 'Application Type',
+      value: 'Restoration of Interrupted Pension',
+      source: 'DEFAULT',
+    },
+    {
+      key: 'portalDraftRef',
+      label: 'Portal Draft Reference',
+      value: 'DRAFT-MH-2026-0091',
+      source: 'PORTAL_GENERATED',
+    },
   ],
 };
 
@@ -353,6 +461,7 @@ export const mockApi = {
           age: 68,
           language: normalizeLangCode(language),
           aadhaarMasked: 'XXXX-XXXX-4821',
+          phoneMasked: 'XXXXXX3210',
           bankAccountMasked: 'XXXXXXXX9012',
         },
       },
@@ -360,10 +469,39 @@ export const mockApi = {
   },
 
   async createCaseFromTranscript({
-    transcript = 'माझी पेन्शन थांबली आहे',
+    transcript = 'Meri pension band ho gayi',
     language = mockStore.language,
   } = {}) {
     const lang = normalizeLangCode(language);
+    const normalizedText = String(transcript || '').toLowerCase();
+    const isUnknown =
+      normalizedText.includes('unknown') ||
+      normalizedText.includes('अस्पष्ट') ||
+      normalizedText.includes('xyz');
+
+    if (isUnknown) {
+      unknownAttempts += 1;
+      const showMadadKendra = unknownAttempts >= 2;
+      const c = getCopy(
+        lang,
+        showMadadKendra ? 'intakeUnknownMadad' : 'intakeUnknownRetry'
+      );
+      return {
+        display: c.display,
+        speech: c.speech,
+        data: {
+          caseId: mockStore.id,
+          status: CASE_STATUS.INTAKE,
+          service: null,
+          confidence: 0.22,
+          unknownAttempts,
+          madadKendra: showMadadKendra,
+          language: lang,
+        },
+      };
+    }
+
+    unknownAttempts = 0;
     mockStore = {
       ...createInitialCaseState(lang),
       status: CASE_STATUS.INTAKE,
@@ -384,6 +522,8 @@ export const mockApi = {
           name: 'Old Age Pension Restoration',
         },
         confidence: 0.96,
+        clarifyingQuestion: 'kaunsi pension?',
+        options: ['old_age_pension', 'widow_disability_pension'],
         language: lang,
       },
     };
@@ -391,8 +531,8 @@ export const mockApi = {
 
   async answerCaseQuestion({
     caseId = mockStore.id,
-    answer = '३ महिन्यांपासून पेन्शन बंद आहे',
-    fieldId = 'monthsStopped',
+    answer = 'old_age_pension',
+    fieldId = 'pensionType',
     language = mockStore.language,
   } = {}) {
     const lang = normalizeLangCode(language);
@@ -405,6 +545,7 @@ export const mockApi = {
         status: mockStore.status,
         updatedFields: { [fieldId]: answer },
         nextQuestion: null,
+        readyForServiceConfirm: true,
       },
     };
   },
@@ -440,8 +581,22 @@ export const mockApi = {
     language = mockStore.language,
   } = {}) {
     const lang = normalizeLangCode(language);
+    if (!given) {
+      const c = getCopy(lang, 'consentDeclined');
+      return {
+        display: c.display,
+        speech: c.speech,
+        data: {
+          caseId,
+          status: mockStore.status,
+          halted: true,
+          consent: { given: false, timestamp: new Date().toISOString() },
+        },
+      };
+    }
+
     const consentObj = {
-      given: Boolean(given),
+      given: true,
       timestamp: new Date().toISOString(),
     };
     mockStore = transitionCaseState(mockStore, CASE_STATUS.CONSENTED, {
@@ -463,9 +618,51 @@ export const mockApi = {
   async uploadDocuments({
     caseId = mockStore.id,
     markReady = false,
+    simulateIssue = null,
     language = mockStore.language,
   } = {}) {
     const lang = normalizeLangCode(language);
+
+    if (simulateIssue === 'blurry') {
+      mockStore = transitionCaseState(mockStore, CASE_STATUS.DOCS_COLLECTING, {
+        documents: DEFAULT_CHECKLIST.map((d, idx) =>
+          idx === 2 ? { ...d, status: 'RETRY_BLURRY' } : d
+        ),
+        language: lang,
+      });
+      const c = getCopy(lang, 'docsBlurry');
+      return {
+        display: c.display,
+        speech: c.speech,
+        data: {
+          caseId,
+          status: mockStore.status,
+          issue: 'PHOTO_BLURRY',
+          checklist: mockStore.documents,
+        },
+      };
+    }
+
+    if (simulateIssue === 'expired') {
+      mockStore = transitionCaseState(mockStore, CASE_STATUS.DOCS_COLLECTING, {
+        documents: DEFAULT_CHECKLIST.map((d, idx) =>
+          idx === 2 ? { ...d, status: 'RETRY_EXPIRED' } : d
+        ),
+        language: lang,
+      });
+      const c = getCopy(lang, 'docsExpired');
+      return {
+        display: c.display,
+        speech: c.speech,
+        data: {
+          caseId,
+          status: mockStore.status,
+          issue: 'LIFE_CERT_EXPIRED',
+          checklist: mockStore.documents,
+        },
+      };
+    }
+
     const targetStatus = markReady
       ? CASE_STATUS.DOCS_READY
       : CASE_STATUS.DOCS_COLLECTING;
@@ -481,6 +678,7 @@ export const mockApi = {
       data: {
         caseId,
         status: mockStore.status,
+        issue: null,
         checklist: DEFAULT_CHECKLIST,
       },
     };
@@ -488,11 +686,10 @@ export const mockApi = {
 
   async fillDraft({ caseId = mockStore.id, language = mockStore.language } = {}) {
     const lang = normalizeLangCode(language);
-    if (mockStore.status === CASE_STATUS.CONSENTED) {
-      mockStore = transitionCaseState(mockStore, CASE_STATUS.DOCS_READY, {
-        documents: DEFAULT_CHECKLIST,
-      });
-    } else if (mockStore.status === CASE_STATUS.DOCS_COLLECTING) {
+    if (
+      mockStore.status === CASE_STATUS.CONSENTED ||
+      mockStore.status === CASE_STATUS.DOCS_COLLECTING
+    ) {
       mockStore = transitionCaseState(mockStore, CASE_STATUS.DOCS_READY, {
         documents: DEFAULT_CHECKLIST,
       });
@@ -545,7 +742,6 @@ export const mockApi = {
     language = mockStore.language,
   } = {}) {
     const lang = normalizeLangCode(language);
-    // Uses state machine hard safety guard: throws APPROVAL_REQUIRED if approval.given !== true
     mockStore = transitionCaseState(mockStore, CASE_STATUS.SUBMITTED, {
       submission: {
         applicationId: 'PEN-2026-88213',
@@ -690,13 +886,18 @@ export const mockApi = {
           age: 68,
           language: lang,
           aadhaarMasked: 'XXXX-XXXX-4821',
+          phoneMasked: 'XXXXXX3210',
           bankAccountMasked: 'XXXXXXXX9012',
         },
       },
     };
   },
 
-  async patchProfile({ name = 'Ramabai Kulkarni', language = mockStore.language } = {}) {
+  async patchProfile({
+    name = 'Ramabai Kulkarni',
+    saveProfile = true,
+    language = mockStore.language,
+  } = {}) {
     const lang = normalizeLangCode(language);
     mockStore.language = lang;
     const c = getCopy(lang, 'profile');
@@ -708,8 +909,10 @@ export const mockApi = {
           id: 'CITIZEN-RAMABAI-01',
           name,
           age: 68,
+          saveProfile,
           language: lang,
           aadhaarMasked: 'XXXX-XXXX-4821',
+          phoneMasked: 'XXXXXX3210',
           bankAccountMasked: 'XXXXXXXX9012',
         },
       },
@@ -731,6 +934,7 @@ export const mockApi = {
   async deleteAllMyData({ language = mockStore.language } = {}) {
     const lang = normalizeLangCode(language);
     mockStore = createInitialCaseState(lang);
+    unknownAttempts = 0;
     const c = getCopy(lang, 'profileDeleted');
     return {
       display: c.display,
@@ -752,7 +956,7 @@ export const mockApi = {
       data: {
         sender: 'Taluka Social Welfare Office, Pune',
         reason: 'Annual Digital Life Certificate (Jeevan Pramaan) verification pending',
-        actionRequired: 'Submit Jeevan Pramaan ID along withPension Restoration form',
+        actionRequired: 'Submit Jeevan Pramaan ID along with Pension Restoration form',
         deadline: '15 days',
       },
     };
@@ -840,6 +1044,7 @@ export const mockApi = {
   async demoReset({ language = mockStore.language } = {}) {
     const lang = normalizeLangCode(language);
     mockStore = createInitialCaseState(lang);
+    unknownAttempts = 0;
     const c = getCopy(lang, 'reset');
     return {
       display: c.display,
@@ -852,4 +1057,3 @@ export const mockApi = {
     };
   },
 };
-

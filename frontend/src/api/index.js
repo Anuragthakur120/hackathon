@@ -1,4 +1,4 @@
-import { mockApi } from './mockApi.js';
+import { mockApi, DEFAULT_CHECKLIST, DEFAULT_DRAFT } from './mockApi.js';
 import { realApi } from './realApi.js';
 
 export function getApiMode() {
@@ -11,5 +11,4 @@ export function getApiMode() {
 }
 
 export const api = getApiMode() === 'real' ? realApi : mockApi;
-export { mockApi, realApi };
-
+export { mockApi, realApi, DEFAULT_CHECKLIST, DEFAULT_DRAFT };
