@@ -20,7 +20,7 @@ export function createCorsMiddleware(
     );
     res.setHeader(
       'Access-Control-Allow-Headers',
-      'Content-Type,Authorization,X-Requested-With'
+      'Content-Type,Authorization,X-Requested-With,X-NagarSathi-Lang'
     );
 
     if (req.method === 'OPTIONS') {

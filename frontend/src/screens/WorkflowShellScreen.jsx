@@ -105,6 +105,7 @@ export function WorkflowShellScreen() {
 
     setCaseState((prev) => ({
       ...prev,
+      id: reply.data.caseId || prev.id,
       status: CASE_STATUS.INTAKE,
       serviceId: reply.data.service.id,
       serviceName: reply.data.service.name,

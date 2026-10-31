@@ -27,6 +27,7 @@ import {
   submitCaseToPortal,
 } from '../portalAdapter.js';
 import { requireConsent } from '../consentMiddleware.js';
+import { resetUnknownIntakeAttempts } from './agentRoutes.js';
 
 function detectServiceFromTranscript(transcript = '') {
   const lower = String(transcript).toLowerCase();
@@ -276,7 +277,10 @@ export function createCaseRouter({ portalAdapter = defaultPortalAdapter } = {}) 
           });
         }
 
-        const now = new Date();
+        const draftTime = caseDoc.draftUpdatedAt
+          ? new Date(caseDoc.draftUpdatedAt).getTime()
+          : 0;
+        const now = new Date(Math.max(Date.now(), draftTime));
         const nextCase = transitionCase(caseDoc, 'CONSENTED', {
           actor: 'CITIZEN',
           note: `Gate 1 Consent agreed (CAN: ${GATE1_PERMISSIONS.canDo.join(',')}; CANNOT: ${GATE1_PERMISSIONS.cannotDo.join(',')})`,
@@ -325,7 +329,10 @@ export function createCaseRouter({ portalAdapter = defaultPortalAdapter } = {}) 
         if (!assertSameCitizen(req, res, caseDoc.userId)) return;
 
         const saveProfileConsent = Boolean(req.body?.saveProfileConsent);
-        const now = new Date();
+        const draftTime = caseDoc.draftUpdatedAt
+          ? new Date(caseDoc.draftUpdatedAt).getTime()
+          : 0;
+        const now = new Date(Math.max(Date.now(), draftTime));
 
         const updatedConsent = {
           ...(caseDoc.consent || {}),
@@ -581,7 +588,7 @@ export function createCaseRouter({ portalAdapter = defaultPortalAdapter } = {}) 
           }
         }
 
-        const draftUpdatedAt = new Date(Date.now() + 5);
+        const draftUpdatedAt = new Date();
         const nextCase = transitionCase(caseDoc, 'FORM_FILLED', {
           actor: 'CITIZEN',
           note: hadApproval
@@ -710,7 +717,10 @@ export function createCaseRouter({ portalAdapter = defaultPortalAdapter } = {}) 
           });
         }
 
-        const now = new Date();
+        const draftTime = caseDoc.draftUpdatedAt
+          ? new Date(caseDoc.draftUpdatedAt).getTime()
+          : 0;
+        const now = new Date(Math.max(Date.now(), draftTime));
         const nextCase = transitionCase(caseDoc, 'APPROVED', {
           actor: 'CITIZEN',
           note: 'Gate 2 physical approval button confirmed by citizen',
@@ -1227,6 +1237,7 @@ export function createCaseRouter({ portalAdapter = defaultPortalAdapter } = {}) 
 
   router.post('/demo/reset', requireDemoMode, async (_req, res, next) => {
     try {
+      resetUnknownIntakeAttempts();
       portalAdapter.reset();
       await seedDatabase('memory');
       return res.status(200).json({

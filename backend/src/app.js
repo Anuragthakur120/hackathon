@@ -10,12 +10,14 @@ import {
 } from './middleware.js';
 import { createCoreRouter } from './routes/coreRoutes.js';
 import { createCaseRouter } from './routes/caseRoutes.js';
+import { createAgentRouter } from './routes/agentRoutes.js';
 import { defaultPortalAdapter } from './portalAdapter.js';
+import { defaultAgentAdapter } from './agentAdapter.js';
 
 /**
  * Creates the Express application with CORS, rate limiting, masking request logger,
  * background audit log middleware, core routes (/auth, /profile, /vault, /services, /health),
- * case engine routes (/cases/*, /demo/*), and central error handling.
+ * case engine routes (/cases/*, /demo/*), agent routes (/agents/*), and central error handling.
  */
 export function createApp({
   rateLimitMax = 120,
@@ -23,6 +25,7 @@ export function createApp({
   logSink = [],
   allowedOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
   portalAdapter = defaultPortalAdapter,
+  agentAdapter = defaultAgentAdapter,
 } = {}) {
   const app = express();
 
@@ -34,11 +37,14 @@ export function createApp({
 
   const coreRouter = createCoreRouter();
   const caseRouter = createCaseRouter({ portalAdapter });
+  const agentRouter = createAgentRouter({ agentAdapter, portalAdapter });
 
   app.use('/', coreRouter);
   app.use('/', caseRouter);
+  app.use('/', agentRouter);
   app.use('/api', coreRouter);
   app.use('/api', caseRouter);
+  app.use('/api', agentRouter);
 
   app.use(centralErrorHandler);
 

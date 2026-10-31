@@ -8,3 +8,4 @@ portalApp.listen(PORTAL_PORT, () => {
     `[@nagarsathi/mock-portal] Server-rendered portal listening on http://localhost:${PORTAL_PORT}`
   );
 });
+

@@ -43,3 +43,16 @@ Node.js + Express backend for **NagarSathi (CITY-02)** integrated with `@nagarsa
    - Missing selector fallback (`llmSelectorFallback`) sends **only** screenshot filename and field `KEYS` (never values).
    - Retries 3 times with backoff (`dobara koshish 1/3 -> 3/3`) on selector/portal failures.
    - Invalidates Gate 2 approval whenever the draft is edited after approval (`PATCH /cases/:caseId/draft` or `draftUpdatedAt > approval.at`).
+
+
+---
+
+## 4. Module B4 Features (Backend Agent Routes & Frontend `realApi` Wiring)
+
+1. **Thin `/models` Agent Adapter (`src/agentAdapter.js`)**:
+   - Exposes `intake`, `documents`, `portal`, `tracker`, `caller`, and `letter` methods returning `{ display, speech, data }`.
+   - Enforces `requireValidLanguage(language)` (`mr-IN`, `hi-IN`, `en-IN`) on every call (`400 LANGUAGE_REQUIRED` if missing or invalid).
+   - Scrubs all user/officer inputs via `maskForLlm` before delegating to `/models` or deterministic stubs.
+2. **Agent Routes (`src/routes/agentRoutes.js`)**:
+   - Mounts `/agents/intake`, `/agents/documents`, `/agents/portal`, `/agents/tracker`, `/agents/caller`, and `/agents/letter` (at both `/` and `/api/agents/*`) guarded by `requireLanguageMiddleware`.
+   - Synchronizes state transitions with `@nagarsathi/database` `Case` documents and connects directly to `frontend/src/api/realApi.js` when `VITE_API_MODE=real`.

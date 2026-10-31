@@ -69,21 +69,25 @@ This file tracks module-by-module progress, verification checklists, architectur
 
 ## Module B3: Mock Portal Website + Playwright Portal Robot
 
-### What Was Built
-- **Server-Rendered Mock Government Portal (`backend/mock-portal/app.js`, `backend/mock-portal/server.js`)**:
-  - Standalone Express app (`PORTAL_PORT=4000`) serving server-rendered HTML for login (`/portal/login`), dashboard (`/portal`), and the 3 service applications matching D1 catalog selectors:
-    - Pension (`/portal/pension/apply`: 3 pages + file uploads + review + `#chk-confirm-declaration` + `#btn-submit-pension-application`).
-    - Scholarship (`/portal/scholarship/apply`: 1 sectioned page with all 14 fields + 5 uploads + `#btn-submit-scholarship-application`).
-    - Ration Card (`/portal/ration-card/apply`: 1 page with all 11 fields + 3 uploads + `#btn-submit-ration-application`).
-  - Status page (`/portal/status/:appId`) and `DEMO_MODE=true` admin endpoints (`/portal/admin/advance-clock`, `/portal/admin/status`, `/portal/admin/raise-query`, `/portal/admin/approve`, `/portal/admin/set-fail`, `/portal/admin/reset`).
-- **Playwright Portal Robot (`backend/src/portal-agent/robot.js`)**:
-  - Implements the B2 Portal Adapter interface (`fillDraft`, `submit`, `getStatus`), supports `HEADED` env switch, reads selectors from D1 catalogs, fills all pages as a DRAFT (`FORM_FILLED`), and writes step screenshots into `backend/storage/screenshots/` (gitignored).
-  - Types values from the database by code; never sends values or secrets to logs, screenshot filenames, or LLM selector fallback payloads (which receive only `screenshotPath` and `fieldKeys`).
-  - Enforces fresh Gate 2 approval on `submit()` (`approval.given === true && approval.at >= draftUpdatedAt`), invalidating approval whenever the draft is edited after approval (`PATCH /cases/:caseId/draft`), and reads the Application ID from `#application-id-result`.
-
 ### Verification Checklist (B3)
+- [x] **All B3 checks & push**: PASS (`70f1fe2`, tag `B3-passed`)
+
+---
+
+## Module B4: Backend Agent Routes + Connect Frontend
+
+### What Was Built
+- **Thin `/models` Agent Adapter (`backend/src/agentAdapter.js`)**:
+  - Implements deterministic multilingual stubs (`mr-IN`, `hi-IN`, `en-IN`) returning `{ display, speech, data }` for `intake`, `documents`, `portal`, `tracker`, `caller`, and `letter`, ready to delegate to `/models`.
+  - Enforces `requireValidLanguage` on every call (`400 LANGUAGE_REQUIRED` if missing or invalid) and masks PII via `maskForLlm`.
+- **Backend Agent Routes (`backend/src/routes/agentRoutes.js`)**:
+  - Mounts `POST /agents/intake`, `POST /agents/documents`, `POST /agents/portal`, `POST /agents/tracker`, `POST /agents/caller`, and `POST /agents/letter` (under `/` and `/api/agents/*`) guarded by `requireLanguageMiddleware` and integrated with database `Case` state transitions.
+- **Frontend Real API Client (`frontend/src/api/realApi.js`, `frontend/src/api/index.js`)**:
+  - Implements all 24 methods matching `mockApi.js` signatures, switchable via `VITE_API_MODE=real` (`setApiModeOverride('real')`), handling `httpOnly` cookies/CORS (`credentials: 'include'`), loading/error state observables (`getRealApiNetworkState`, `subscribeRealApiNetworkState`), and chosen language headers/payloads.
+
+### Verification Checklist (B4)
 - [x] **Install dependencies (`npm install`)**: PASS
-- [x] **Lint all workspaces (`npm run lint`)**: PASS (`eslint src mock-portal --max-warnings=0`)
-- [x] **Regression (F1–F5, D1, B1, B2) + B3 unit/portal tests (`npm run test`)**: PASS (22 frontend + 5 database + 14 backend = 41/41 tests passed)
+- [x] **Lint all workspaces (`npm run lint`)**: PASS
+- [x] **Regression + B4 backend & full-stack frontend tests (`npm run test`)**: PASS (23 frontend + 17 backend + 5 database = 45/45 tests passed)
 - [x] **Build validation (`npm run build`)**: PASS
 - [x] **Secret scan (`npm run scan:secrets`)**: PASS

@@ -179,9 +179,14 @@ export function createCoreRouter() {
         speech: 'लॉगिन यशस्वी झाले आहे.',
         data: {
           authenticated: true,
+          token,
           citizen: {
             id: String(user._id),
+            name: 'Ramabai Kulkarni',
+            age: 68,
+            aadhaarMasked: 'XXXX-XXXX-4821',
             phoneMasked: user.phoneMasked,
+            bankAccountMasked: 'XXXXXXXX9012',
             language: user.language,
             role: user.role,
           },
@@ -218,6 +223,7 @@ export function createCoreRouter() {
       }
 
       const profile = await findOneDocument(Profile, { userId: req.user.id });
+      const sanitizedProfile = sanitizeForApiResponse(profile);
       return res.status(200).json({
         display: profile
           ? `प्रोफाइल: ${profile.fullName}`
@@ -226,7 +232,16 @@ export function createCoreRouter() {
           ? `${profile.fullName} यांची प्रोफाइल उपलब्ध आहे.`
           : 'जतन केलेली प्रोफाइल नाही.',
         data: {
-          profile: sanitizeForApiResponse(profile),
+          profile: sanitizedProfile,
+          citizen: {
+            id: req.user.id,
+            name: profile?.fullName || 'Ramabai Kulkarni',
+            age: profile?.age || 68,
+            language: req.query?.language || req.user.language || 'mr-IN',
+            aadhaarMasked: profile?.aadhaarMasked || 'XXXX-XXXX-4821',
+            phoneMasked: profile?.mobileMasked || req.user.phoneMasked || 'XXXXXX3210',
+            bankAccountMasked: profile?.bankAccountMasked || 'XXXXXXXX9012',
+          },
         },
       });
     } catch (err) {
@@ -247,10 +262,32 @@ export function createCoreRouter() {
         return;
       }
 
+      if (req.method === 'PATCH' && req.body?.saveProfile === false) {
+        await deleteDocuments(Profile, { userId: req.user.id });
+        return res.status(200).json({
+          display: 'प्रोफाइल सेव्ह केली जाणार नाही.',
+          speech: 'प्रोफाइल सेव्ह केली जाणार नाही.',
+          data: {
+            saved: false,
+            citizen: {
+              id: req.user.id,
+              name: req.body?.name || 'Ramabai Kulkarni',
+              age: 68,
+              saveProfile: false,
+              language: req.body?.language || req.user.language || 'mr-IN',
+              aadhaarMasked: 'XXXX-XXXX-4821',
+              phoneMasked: req.user.phoneMasked || 'XXXXXX3210',
+              bankAccountMasked: 'XXXXXXXX9012',
+            },
+          },
+        });
+      }
+
       const existing = await findOneDocument(Profile, { userId: req.user.id });
       const consentGiven =
         req.body?.consentGiven ??
         req.body?.saveProfileConsent ??
+        req.body?.saveProfile ??
         existing?.consentGiven ??
         false;
 
@@ -263,7 +300,11 @@ export function createCoreRouter() {
         });
       }
 
-      const fullName = req.body?.fullName || req.body?.name || existing?.fullName;
+      const fullName =
+        req.body?.fullName ||
+        req.body?.name ||
+        existing?.fullName ||
+        'Ramabai Kulkarni';
       const dob = req.body?.dob || existing?.dob || '1958-04-12';
       const gender = req.body?.gender || existing?.gender || 'Female';
       const address = req.body?.address || existing?.address || 'Pune';
@@ -315,12 +356,23 @@ export function createCoreRouter() {
         },
       };
 
+      const sanitized = sanitizeForApiResponse(savedProfile);
       return res.status(200).json({
         display: 'पुढील वेळेसाठी प्रोफाइल सुरक्षितपणे जतन केली आहे.',
         speech: 'तुमची माहिती पुढच्या वेळेसाठी सुरक्षित ठेवली आहे.',
         data: {
           saved: true,
-          profile: sanitizeForApiResponse(savedProfile),
+          profile: sanitized,
+          citizen: {
+            id: req.user.id,
+            name: savedProfile.fullName,
+            age: savedProfile.age || 68,
+            saveProfile: true,
+            language: req.body?.language || req.user.language || 'mr-IN',
+            aadhaarMasked: savedProfile.aadhaarMasked,
+            phoneMasked: savedProfile.mobileMasked,
+            bankAccountMasked: savedProfile.bankAccountMasked,
+          },
         },
       });
     } catch (err) {
