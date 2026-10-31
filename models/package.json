@@ -3,10 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./evals/*": "./evals/*"
+  },
   "scripts": {
-    "lint": "node -e \"console.log('@nagarsathi/models: lint ok (M0 stub)')\"",
-    "test": "node -e \"console.log('@nagarsathi/models: test ok (M0 stub)')\"",
-    "build": "node -e \"console.log('@nagarsathi/models: build ok (M0 stub)')\""
+    "lint": "eslint src evals --max-warnings=0",
+    "test": "vitest run",
+    "build": "node src/validate-build.js",
+    "evals": "node evals/run-evals.js"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.16.0",
+    "eslint": "^9.16.0",
+    "globals": "^15.13.0",
+    "vitest": "^2.1.8"
   }
 }
-

@@ -76,18 +76,33 @@ This file tracks module-by-module progress, verification checklists, architectur
 
 ## Module B4: Backend Agent Routes + Connect Frontend
 
-### What Was Built
-- **Thin `/models` Agent Adapter (`backend/src/agentAdapter.js`)**:
-  - Implements deterministic multilingual stubs (`mr-IN`, `hi-IN`, `en-IN`) returning `{ display, speech, data }` for `intake`, `documents`, `portal`, `tracker`, `caller`, and `letter`, ready to delegate to `/models`.
-  - Enforces `requireValidLanguage` on every call (`400 LANGUAGE_REQUIRED` if missing or invalid) and masks PII via `maskForLlm`.
-- **Backend Agent Routes (`backend/src/routes/agentRoutes.js`)**:
-  - Mounts `POST /agents/intake`, `POST /agents/documents`, `POST /agents/portal`, `POST /agents/tracker`, `POST /agents/caller`, and `POST /agents/letter` (under `/` and `/api/agents/*`) guarded by `requireLanguageMiddleware` and integrated with database `Case` state transitions.
-- **Frontend Real API Client (`frontend/src/api/realApi.js`, `frontend/src/api/index.js`)**:
-  - Implements all 24 methods matching `mockApi.js` signatures, switchable via `VITE_API_MODE=real` (`setApiModeOverride('real')`), handling `httpOnly` cookies/CORS (`credentials: 'include'`), loading/error state observables (`getRealApiNetworkState`, `subscribeRealApiNetworkState`), and chosen language headers/payloads.
-
 ### Verification Checklist (B4)
+- [x] **All B4 checks & push**: PASS (`7311030`, tag `B4-passed`)
+
+---
+
+## Module A1: Models (Claude Agents, Unified Wrapper, Redaction, Caller Guard & Evals)
+
+### What Was Built
+- **Six Agent Prompts (`models/prompts/*.md`)**:
+  - Created `intake.md`, `documents.md`, `portal.md`, `tracker.md`, `caller.md`, and `letter.md` enforcing multilingual (`mr-IN`, `hi-IN`, `en-IN`) JSON responses (`{ display, speech, data }`), spoken-sentence rules (10–12 words per sentence, digit-by-digit IDs, zero symbols/URLs), and strict privacy rules.
+- **Unified Claude Wrapper (`models/src/claudeWrapper.js`)**:
+  - Uses `CLAUDE_MODEL` (default `claude-sonnet-5-5`) and `CLAUDE_MODEL_FAST` (default `claude-haiku-5-5` for live caller turns) with `ANTHROPIC_API_KEY`.
+  - Redacts all incoming payloads via `redactPayload()` before constructing prompts, enforces JSON schema validation, retries once on invalid JSON, enforces request timeouts, and falls back gracefully on API error.
+  - Supports deterministic offline fixtures when `MOCK_AI=true` (`models/src/mockFixtures.js`).
+- **Security & Speech Guards (`models/src/redact.js`, `models/src/guards.js`)**:
+  - `redact()` masks Aadhaar, phone, bank account, IFSC, and OTP sequences before any LLM call.
+  - `validateSpeechField()` verifies sentence length, absence of symbols/URLs, and language script alignment.
+  - `guardCallOutput()` blocks and logs any Aadhaar, OTP, password, or bank account number in Caller turns (even when prompted by an adversarial officer).
+  - `verifyCatalogServiceId()` ensures only valid catalog service IDs (`pension`, `scholarship`, `ration_card`) are returned, converting unknown IDs to `"unknown"`.
+- **Multilingual Evals (`models/evals/dataset.js`, `models/evals/run-evals.js`) & Backend Wiring (`backend/src/agentAdapter.js`)**:
+  - 18 eval scenarios (6 agents x 3 languages) passing 100% under `MOCK_AI=true`.
+  - Connected `backend/src/agentAdapter.js` directly to `@nagarsathi/models`.
+
+### Verification Checklist (A1)
 - [x] **Install dependencies (`npm install`)**: PASS
 - [x] **Lint all workspaces (`npm run lint`)**: PASS
-- [x] **Regression + B4 backend & full-stack frontend tests (`npm run test`)**: PASS (23 frontend + 17 backend + 5 database = 45/45 tests passed)
+- [x] **Models evals in 3 languages (`npm run evals --workspace=@nagarsathi/models`)**: PASS (18/18 passed)
+- [x] **All unit & integration tests (`npm run test`)**: PASS (23 frontend + 17 backend + 10 models + 5 database = 55/55 tests passed)
 - [x] **Build validation (`npm run build`)**: PASS
 - [x] **Secret scan (`npm run scan:secrets`)**: PASS

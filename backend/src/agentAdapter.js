@@ -1,3 +1,4 @@
+import { defaultModelsClient } from '@nagarsathi/models';
 import { maskForLlm } from './privacy.js';
 
 export const SUPPORTED_LANGUAGES = Object.freeze(['mr-IN', 'hi-IN', 'en-IN']);
@@ -487,7 +488,9 @@ export const DEFAULT_DRAFT = {
  * returning `{ display, speech, data }`).
  * Every method strictly enforces that `language` (or `lang`) is passed and valid.
  */
-export function createAgentAdapter({ modelsClient = null } = {}) {
+export function createAgentAdapter({
+  modelsClient = defaultModelsClient,
+} = {}) {
   return {
     /**
      * 1. Intake Agent (`/agents/intake`):
