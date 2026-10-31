@@ -1,5 +1,9 @@
 {
   "appName": "नगरसाथी (NagarSathi)",
+  "skipToMainLabel": "मुख्य मजकुराकडे जा (Skip to Main Content)",
+  "progressBarAriaLabel": "सेवा प्रगती दर्शक (Service Progress Indicator)",
+  "voiceGuideAriaLabel": "आवाज मार्गदर्शक नियंत्रणे (Voice Guide Controls)",
+  "personaCardAriaLabel": "नागरिक प्रोफाइल आणि स्थिती (Citizen Profile and Status)",
   "slogan": "जो वाचू शकत नाही, तो सुद्धा सर्व काही करू शकतो.",
   "sloganOriginal": "Jo padh nahi sakta, wo bhi sab kuch kar sakta hai.",
   "headerLanguageLabel": "भाषा बदला",

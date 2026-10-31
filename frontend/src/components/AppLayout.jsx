@@ -28,6 +28,14 @@ export function AppLayout({ children }) {
 
   return (
     <div className="ns-shell">
+      <a
+        href="#ns-main-content"
+        className="ns-skip-link"
+        data-testid="skip-to-main-link"
+      >
+        {t('skipToMainLabel')}
+      </a>
+
       <header className="ns-header" role="banner">
         <div className="ns-header-brand">
           <Link to="/" className="ns-brand-link">
@@ -39,6 +47,7 @@ export function AppLayout({ children }) {
         <nav
           className="ns-lang-switcher"
           aria-label={t('headerLanguageLabel')}
+          data-testid="header-lang-nav"
         >
           {SUPPORTED_LANGUAGES.map((langItem) => {
             const isActive = language === langItem.code;
@@ -49,6 +58,7 @@ export function AppLayout({ children }) {
                 data-testid={`header-lang-${langItem.shortCode}`}
                 className={`ns-btn ns-lang-chip ${isActive ? 'ns-lang-chip-active' : ''}`}
                 aria-pressed={isActive}
+                aria-label={`${t('headerLanguageLabel')}: ${langItem.nativeLabel}`}
                 onClick={() => setLanguage(langItem.code)}
               >
                 {langItem.nativeLabel}
@@ -65,7 +75,8 @@ export function AppLayout({ children }) {
 
       <section
         className="ns-progress-bar"
-        aria-label="Service Progress Indicator"
+        aria-label={t('progressBarAriaLabel')}
+        data-testid="progress-bar-section"
       >
         <div className="ns-progress-grid">
           {phases.map((phase) => {
@@ -85,7 +96,7 @@ export function AppLayout({ children }) {
         </div>
       </section>
 
-      <main className="ns-main" role="main">
+      <main id="ns-main-content" className="ns-main" role="main" tabIndex={-1}>
         {children}
       </main>
 
@@ -95,4 +106,3 @@ export function AppLayout({ children }) {
     </div>
   );
 }
-

@@ -37,6 +37,25 @@ body {
   flex-direction: column;
 }
 
+.ns-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  min-height: 56px;
+  padding: 0.75rem 1.25rem;
+  background: #facc15;
+  color: #0f172a;
+  font-weight: 900;
+  border: 3px solid #0f172a;
+  text-decoration: none;
+}
+
+.ns-skip-link:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+}
+
 .ns-header {
   background: var(--ns-primary);
   color: #ffffff;

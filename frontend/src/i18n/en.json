@@ -1,5 +1,9 @@
 {
   "appName": "NagarSathi (नगरसाथी)",
+  "skipToMainLabel": "Skip to Main Content",
+  "progressBarAriaLabel": "Service Progress Indicator",
+  "voiceGuideAriaLabel": "Voice Guide Controls",
+  "personaCardAriaLabel": "Citizen Profile and Status",
   "slogan": "Even those who cannot read can accomplish everything.",
   "sloganOriginal": "Jo padh nahi sakta, wo bhi sab kuch kar sakta hai.",
   "headerLanguageLabel": "Change Language",

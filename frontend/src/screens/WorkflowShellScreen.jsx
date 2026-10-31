@@ -562,7 +562,11 @@ export function WorkflowShellScreen() {
   return (
     <div className="ns-workflow-shell">
       {/* Voice Guide Controls Bar: "Apne aap bolo" auto-play toggle, Speech Rate, & 6 Voice Commands */}
-      <section className="ns-card ns-voice-guide-bar" aria-label="Voice Guide Controls">
+      <section
+        className="ns-card ns-voice-guide-bar"
+        aria-label={t('voiceGuideAriaLabel')}
+        data-testid="voice-guide-section"
+      >
         <div className="ns-voice-bar-top">
           <label className="ns-autoplay-toggle">
             <input
@@ -640,7 +644,11 @@ export function WorkflowShellScreen() {
       </section>
 
       {/* Top Citizen Persona + Status Chip + Human Control Label + "Sunao" Button */}
-      <section className="ns-card ns-persona-card" aria-label="Citizen Persona">
+      <section
+        className="ns-card ns-persona-card"
+        aria-label={t('personaCardAriaLabel')}
+        data-testid="persona-card-section"
+      >
         <div className="ns-persona-header">
           <div>
             <h1 className="ns-card-title">{t('citizenPersonaTitle')}</h1>

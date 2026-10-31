@@ -1,7 +1,8 @@
 import { mockApi, DEFAULT_CHECKLIST, DEFAULT_DRAFT } from './mockApi.js';
 import { realApi } from './realApi.js';
 
-export function getApiMode() {
+export function getApiMode(overrideMode) {
+  if (overrideMode) return overrideMode;
   const mode =
     (typeof import.meta !== 'undefined' &&
       import.meta.env &&
@@ -10,5 +11,9 @@ export function getApiMode() {
   return mode;
 }
 
-export const api = getApiMode() === 'real' ? realApi : mockApi;
+export function selectApi(overrideMode) {
+  return getApiMode(overrideMode) === 'real' ? realApi : mockApi;
+}
+
+export const api = selectApi();
 export { mockApi, realApi, DEFAULT_CHECKLIST, DEFAULT_DRAFT };
