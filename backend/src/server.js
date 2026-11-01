@@ -21,18 +21,35 @@ for (const envPath of [
 const mongoUri = process.env.MONGO_URL || process.env.MONGODB_URI;
 const PORT = Number(process.env.PORT || 5000);
 
-const dbInfo = await connectDatabase(mongoUri);
-if (dbInfo.mode === 'mongo') {
-  // Return in terminal as requested
-  // ("in backend return terminal mongodb connected")
+let dbPromise = null;
+export async function initializeDatabase() {
+  if (!dbPromise) {
+    dbPromise = connectDatabase(mongoUri).then(async (dbInfo) => {
+      if (process.env.DEMO_MODE !== 'false') {
+        try {
+          await seedDatabase(mongoUri);
+        } catch (e) {
+          console.warn('[Seed] Warning:', e?.message);
+        }
+      }
+      return dbInfo;
+    });
+  }
+  return dbPromise;
 }
 
-if (process.env.DEMO_MODE !== 'false') {
-  await seedDatabase(mongoUri);
-}
+// Connect immediately on startup
+await initializeDatabase().catch((err) => {
+  console.warn('[Database] Initial connection notice:', err?.message);
+});
 
 const app = createApp();
-app.listen(PORT, () => {
-  console.log(`[@nagarsathi/backend] Listening on http://localhost:${PORT}`);
-});
+
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`[@nagarsathi/backend] Listening on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
 

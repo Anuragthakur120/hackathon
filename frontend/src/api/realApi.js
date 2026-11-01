@@ -53,13 +53,20 @@ export function configureRealApi({ transport = null } = {}) {
   networkState.lastError = null;
 }
 
-function getApiBaseUrl() {
+export function getApiBaseUrl() {
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    const custom =
+      import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
+    if (custom) {
+      return String(custom).replace(/\/$/, '');
+    }
+  }
   if (
-    typeof import.meta !== 'undefined' &&
-    import.meta.env &&
-    import.meta.env.VITE_API_BASE_URL
+    typeof window !== 'undefined' &&
+    window.location?.hostname &&
+    window.location.hostname.includes('vercel.app')
   ) {
-    return String(import.meta.env.VITE_API_BASE_URL).replace(/\/$/, '');
+    return 'https://hackathon-backend-rose-seven.vercel.app';
   }
   return '';
 }

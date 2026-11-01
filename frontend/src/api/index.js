@@ -15,12 +15,28 @@ export function setApiModeOverride(mode) {
 export function getApiMode(overrideMode) {
   if (overrideMode) return overrideMode;
   if (runtimeModeOverride) return runtimeModeOverride;
-  const mode =
-    (typeof import.meta !== 'undefined' &&
-      import.meta.env &&
-      import.meta.env.VITE_API_MODE) ||
-    'mock';
-  return mode;
+  if (
+    typeof import.meta !== 'undefined' &&
+    import.meta.env &&
+    import.meta.env.VITE_API_MODE
+  ) {
+    return import.meta.env.VITE_API_MODE;
+  }
+  if (
+    typeof import.meta !== 'undefined' &&
+    import.meta.env &&
+    (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL)
+  ) {
+    return 'real';
+  }
+  if (
+    typeof window !== 'undefined' &&
+    window.location?.hostname &&
+    window.location.hostname.includes('vercel.app')
+  ) {
+    return 'real';
+  }
+  return 'mock';
 }
 
 export function selectApi(overrideMode) {
