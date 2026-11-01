@@ -127,6 +127,7 @@ export function useVoice({
   language = 'mr-IN',
   onVoiceCommand,
   onSpokenInput,
+  onResult,
 } = {}) {
   const [autoPlay, setAutoPlay] = useState(true); // "Apne aap bolo" on by default
   const [rate, setRate] = useState(DEFAULT_SPEECH_RATE);
@@ -140,13 +141,28 @@ export function useVoice({
   );
 
   const recognitionRef = useRef(null);
+  const isListeningRef = useRef(false);
+  const userStoppedRef = useRef(false);
   const resumeListeningAfterSpeakRef = useRef(false);
+
+  // Keep latest callbacks in refs to avoid stale closure in SpeechRecognition event handlers
+  const onSpokenInputRef = useRef(onSpokenInput || onResult);
+  useEffect(() => {
+    onSpokenInputRef.current = onSpokenInput || onResult;
+  }, [onSpokenInput, onResult]);
+
+  const onVoiceCommandRef = useRef(onVoiceCommand);
+  useEffect(() => {
+    onVoiceCommandRef.current = onVoiceCommand;
+  }, [onVoiceCommand]);
 
   useEffect(() => {
     setVoiceCheckResult(checkVoiceSupport(language));
   }, [language]);
 
   const stopListening = useCallback(() => {
+    userStoppedRef.current = true;
+    isListeningRef.current = false;
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
@@ -159,55 +175,116 @@ export function useVoice({
 
   const startListening = useCallback(() => {
     setSttError(null);
+    userStoppedRef.current = false;
+
     const SpeechRec =
       typeof window !== 'undefined' &&
       (window.SpeechRecognition || window.webkitSpeechRecognition);
 
     if (!SpeechRec) {
       setSttError('STT_UNSUPPORTED');
+      isListeningRef.current = false;
       setIsListening(false);
       return false;
     }
 
     try {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort ? recognitionRef.current.abort() : recognitionRef.current.stop();
+        } catch {
+          // Ignore
+        }
+      }
+
       const rec = new SpeechRec();
       rec.lang = toBcp47Lang(language);
-      rec.continuous = false;
-      rec.interimResults = false;
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.maxAlternatives = 1;
+
+      rec.onstart = () => {
+        isListeningRef.current = true;
+        setIsListening(true);
+      };
 
       rec.onresult = (event) => {
-        const transcript =
-          event?.results?.[0]?.[0]?.transcript?.trim() || '';
-        if (transcript) {
-          setLastTranscript(transcript);
-          const cmd = matchVoiceCommand(transcript);
-          if (cmd && typeof onVoiceCommand === 'function') {
-            onVoiceCommand(cmd, transcript);
-          } else if (typeof onSpokenInput === 'function') {
-            onSpokenInput(transcript);
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = 0; i < event.results.length; i++) {
+          const res = event.results[i];
+          const text = res[0]?.transcript || '';
+          if (res.isFinal) {
+            finalTranscript += text + ' ';
+          } else {
+            interimTranscript += text;
+          }
+        }
+
+        const fullTranscript = (finalTranscript + interimTranscript).trim();
+        if (fullTranscript) {
+          setLastTranscript(fullTranscript);
+          if (typeof onSpokenInputRef.current === 'function') {
+            onSpokenInputRef.current(fullTranscript);
+          }
+          const cmd = matchVoiceCommand(fullTranscript);
+          if (cmd && typeof onVoiceCommandRef.current === 'function') {
+            onVoiceCommandRef.current(cmd, fullTranscript);
           }
         }
       };
 
       rec.onerror = (err) => {
-        setSttError(err?.error || 'STT_FAILED');
-        setIsListening(false);
+        const errType = err?.error || 'UNKNOWN_ERROR';
+        if (errType === 'no-speech' || errType === 'aborted') {
+          // Chrome pauses on silence or abort on re-init; keep listening active
+          return;
+        }
+        if (errType === 'not-allowed' || errType === 'service-not-allowed') {
+          setSttError('MIC_PERMISSION_DENIED');
+          userStoppedRef.current = true;
+          isListeningRef.current = false;
+          setIsListening(false);
+          return;
+        }
+        if (errType === 'network') {
+          setSttError('NETWORK_ERROR');
+          userStoppedRef.current = true;
+          isListeningRef.current = false;
+          setIsListening(false);
+          return;
+        }
+        setSttError(errType);
       };
 
       rec.onend = () => {
-        setIsListening(false);
+        // Auto-restart if user did not explicitly stop the mic and Chrome stopped on a pause
+        if (isListeningRef.current && !userStoppedRef.current) {
+          try {
+            rec.start();
+          } catch {
+            isListeningRef.current = false;
+            setIsListening(false);
+          }
+        } else {
+          setIsListening(false);
+        }
       };
 
       recognitionRef.current = rec;
-      rec.start();
+      isListeningRef.current = true;
       setIsListening(true);
+      rec.start();
       return true;
-    } catch {
-      setSttError('STT_FAILED');
+    } catch (err) {
+      console.warn('Failed to start speech recognition:', err);
+      setSttError(err?.message || 'START_FAILED');
+      isListeningRef.current = false;
       setIsListening(false);
       return false;
     }
-  }, [language, onVoiceCommand, onSpokenInput]);
+  }, [language]);
 
   const speakText = useCallback(
     (text, opts = {}) => {
@@ -226,6 +303,7 @@ export function useVoice({
           // Ignore
         }
       }
+      isListeningRef.current = false;
       setIsListening(false);
       setIsSpeaking(true);
 
@@ -270,6 +348,7 @@ export function useVoice({
     isListening,
     sttError,
     sttSupported: voiceCheckResult.sttSupported,
+    isSupported: voiceCheckResult.sttSupported,
     voiceCheckResult,
     lastSpokenText,
     lastTranscript,
@@ -280,4 +359,3 @@ export function useVoice({
     runSelfCheck,
   };
 }
-

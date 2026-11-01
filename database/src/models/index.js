@@ -72,9 +72,38 @@ export const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    name: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    email: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    address: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    state: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    district: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    profileCompleted: {
+      type: Number,
+      default: 0,
+    },
     language: {
       type: String,
-      enum: ['mr-IN', 'hi-IN', 'en-IN'],
+      enum: ['mr-IN', 'hi-IN', 'en-IN', 'gu-IN', 'bn-IN', 'ta-IN', 'te-IN'],
       default: 'mr-IN',
       required: true,
     },
@@ -175,13 +204,28 @@ export const VaultDocSchema = new mongoose.Schema(
       enum: [
         'PENDING',
         'UPLOADED',
+        'PENDING_VERIFICATION',
+        'UNDER_REVIEW',
         'VERIFIED',
+        'REJECTED',
+        'REUPLOAD_REQUIRED',
         'REJECTED_BLURRY',
         'REJECTED_EXPIRED',
       ],
-      default: 'VERIFIED',
+      // Documents are NEVER verified by default: verification is an explicit step.
+      default: 'PENDING_VERIFICATION',
       required: true,
     },
+    verification: {
+      method: { type: String, default: null },
+      checkedAt: { type: Date, default: null },
+      checks: { type: [mongoose.Schema.Types.Mixed], default: [] },
+      reason: { type: String, default: null },
+      reviewRequired: { type: Boolean, default: false },
+    },
+    storageKey: { type: String, default: null },
+    contentHash: { type: String, default: null },
+    replacesDocId: { type: String, default: null },
     issuedAt: {
       type: Date,
     },
@@ -196,6 +240,22 @@ export const VaultDocSchema = new mongoose.Schema(
     maskedSummary: {
       type: String,
       required: true,
+    },
+    fileName: {
+      type: String,
+      default: '',
+    },
+    fileSize: {
+      type: Number,
+      default: 0,
+    },
+    mimeType: {
+      type: String,
+      default: 'application/pdf',
+    },
+    category: {
+      type: String,
+      default: 'Identity',
     },
     uploadedAt: {
       type: Date,
@@ -259,7 +319,6 @@ export const CaseSchema = new mongoose.Schema(
     },
     service: {
       type: String,
-      enum: ALLOWED_SERVICE_IDS,
       required: true,
     },
     status: {
@@ -291,6 +350,10 @@ export const CaseSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    schemeId: { type: String, default: null },
+    schemeName: { type: String, default: null },
+    formData: { type: mongoose.Schema.Types.Mixed, default: {} },
+    submittedAt: { type: Date, default: null },
     refNo: {
       type: String,
       default: null,
@@ -431,6 +494,156 @@ ServiceCatalogSchema.index(
 );
 
 // ============================================================================
+// 7. Scheme Schema (Government Schemes across 8 Categories)
+// ============================================================================
+export const SchemeSchema = new mongoose.Schema(
+  {
+    schemeId: { type: String, required: true, trim: true },
+    code: { type: String, required: true },
+    category: {
+      type: String,
+      enum: [
+        'Education',
+        'Agriculture',
+        'Healthcare',
+        'Housing',
+        'Employment',
+        'Pension',
+        'Financial Assistance',
+        'Social Welfare',
+      ],
+      required: true,
+    },
+    department: { type: mongoose.Schema.Types.Mixed, required: true },
+    name: { type: mongoose.Schema.Types.Mixed, required: true },
+    description: { type: mongoose.Schema.Types.Mixed, required: true },
+    benefits: { type: mongoose.Schema.Types.Mixed, required: true },
+    eligibilityCriteria: {
+      minAge: { type: Number, default: 0 },
+      maxAge: { type: Number, default: 120 },
+      gender: { type: String, default: 'All' },
+      state: { type: String, default: 'All India' },
+      maxIncome: { type: Number, default: null },
+      occupation: { type: [String], default: [] },
+      categories: { type: [String], default: [] },
+      criteriaText: { type: mongoose.Schema.Types.Mixed, default: {} },
+    },
+    requiredDocuments: {
+      type: [String],
+      default: ['aadhaar_card', 'bank_passbook'],
+    },
+    applicationProcess: {
+      type: [String],
+      default: ['1. Online Application Form', '2. Document Verification', '3. Approval & Benefit Transfer'],
+    },
+    importantDates: {
+      startDate: { type: String, default: '2026-01-01' },
+      endDate: { type: String, default: 'Ongoing' },
+      deadline: { type: String, default: 'Open all year' },
+    },
+    officialReference: {
+      url: { type: String, default: 'https://india.gov.in' },
+      authority: { type: String, default: 'Government of India' },
+    },
+    isActive: { type: Boolean, default: true },
+    icon: { type: String, default: '🏛️' },
+    color: { type: String, default: 'blue' },
+    createdAt: { type: Date, default: () => new Date() },
+    updatedAt: { type: Date, default: () => new Date() },
+  },
+  { collection: 'schemes' }
+);
+SchemeSchema.index({ schemeId: 1 }, { unique: true, name: 'scheme_id_unique' });
+SchemeSchema.index({ category: 1 }, { name: 'scheme_category_idx' });
+
+// ============================================================================
+// 8. Notification Schema
+// ============================================================================
+export const NotificationSchema = new mongoose.Schema(
+  {
+    notificationId: { type: String, required: true },
+    userId: { type: String, required: true },
+    title: { type: String, required: true },
+    message: { type: String, required: true },
+    type: {
+      type: String,
+      enum: ['STATUS_UPDATE', 'DOCUMENT_ALERT', 'APPROVAL', 'REJECTION', 'DEADLINE', 'ANNOUNCEMENT'],
+      default: 'STATUS_UPDATE',
+    },
+    read: { type: Boolean, default: false },
+    link: { type: String, default: '/applications' },
+    createdAt: { type: Date, default: () => new Date() },
+  },
+  { collection: 'notifications' }
+);
+NotificationSchema.index({ userId: 1, createdAt: -1 }, { name: 'notification_user_time_idx' });
+
+// ============================================================================
+// 9. SupportTicket Schema
+// ============================================================================
+export const SupportTicketSchema = new mongoose.Schema(
+  {
+    ticketId: { type: String, required: true },
+    userId: { type: String, required: true },
+    category: {
+      type: String,
+      enum: ['TECHNICAL', 'SCHEME_INQUIRY', 'APPLICATION_DELAY', 'DOCUMENT_VERIFICATION', 'COMPLAINT', 'OTHER'],
+      default: 'SCHEME_INQUIRY',
+    },
+    subject: { type: String, required: true },
+    description: { type: String, required: true },
+    priority: {
+      type: String,
+      enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'],
+      default: 'MEDIUM',
+    },
+    status: {
+      type: String,
+      enum: ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'],
+      default: 'OPEN',
+    },
+    responses: [
+      {
+        author: { type: String, default: 'Support Officer' },
+        role: { type: String, default: 'OFFICER' },
+        message: { type: String, required: true },
+        createdAt: { type: Date, default: () => new Date() },
+      },
+    ],
+    createdAt: { type: Date, default: () => new Date() },
+    updatedAt: { type: Date, default: () => new Date() },
+  },
+  { collection: 'supporttickets' }
+);
+SupportTicketSchema.index({ ticketId: 1 }, { unique: true, name: 'ticket_id_unique' });
+SupportTicketSchema.index({ userId: 1, createdAt: -1 }, { name: 'ticket_user_time_idx' });
+
+// ============================================================================
+// 10. Conversation Schema
+// ============================================================================
+export const ConversationSchema = new mongoose.Schema(
+  {
+    conversationId: { type: String, required: true },
+    userId: { type: String, required: true },
+    language: { type: String, default: 'en-IN' },
+    messages: [
+      {
+        sender: { type: String, enum: ['CITIZEN', 'AGENT', 'SYSTEM'], default: 'CITIZEN' },
+        display: { type: String, required: true },
+        speech: { type: String, default: '' },
+        data: { type: mongoose.Schema.Types.Mixed, default: {} },
+        createdAt: { type: Date, default: () => new Date() },
+      },
+    ],
+    createdAt: { type: Date, default: () => new Date() },
+    updatedAt: { type: Date, default: () => new Date() },
+  },
+  { collection: 'conversations' }
+);
+ConversationSchema.index({ conversationId: 1 }, { unique: true, name: 'conv_id_unique' });
+ConversationSchema.index({ userId: 1, updatedAt: -1 }, { name: 'conv_user_time_idx' });
+
+// ============================================================================
 // Mongoose Models + Dual-Mode Store (Live MongoDB OR Mongoose-Validated Memory Store)
 // ============================================================================
 export const User = mongoose.models.User || mongoose.model('User', UserSchema);
@@ -444,6 +657,19 @@ export const AuditLog =
 export const ServiceCatalog =
   mongoose.models.ServiceCatalog ||
   mongoose.model('ServiceCatalog', ServiceCatalogSchema);
+export const Scheme =
+  mongoose.models.Scheme || mongoose.model('Scheme', SchemeSchema);
+export const Notification =
+  mongoose.models.Notification || mongoose.model('Notification', NotificationSchema);
+export const SupportTicket =
+  mongoose.models.SupportTicket || mongoose.model('SupportTicket', SupportTicketSchema);
+export const Conversation =
+  mongoose.models.Conversation || mongoose.model('Conversation', ConversationSchema);
+
+// Explicit aliases for unified nomenclature requested by citizen platform
+export const Application = Case;
+export const Document = VaultDoc;
+export const ActivityLog = AuditLog;
 
 export const ALL_MODELS = Object.freeze({
   User,
@@ -452,6 +678,10 @@ export const ALL_MODELS = Object.freeze({
   Case,
   AuditLog,
   ServiceCatalog,
+  Scheme,
+  Notification,
+  SupportTicket,
+  Conversation,
 });
 
 // In-memory backing store when running without a live mongod TCP socket
@@ -503,7 +733,7 @@ function initMemoryCollectionForModel(Model) {
  * Connects to MongoDB if a reachable URI is provided, or initializes the
  * Mongoose-validated in-memory collection engine when uri === 'memory' or local TCP is unreachable.
  */
-export async function connectDatabase(uri = process.env.MONGODB_URI) {
+export async function connectDatabase(uri = process.env.MONGODB_URI || process.env.MONGO_URL) {
   for (const Model of Object.values(ALL_MODELS)) {
     initMemoryCollectionForModel(Model);
   }
@@ -513,12 +743,22 @@ export async function connectDatabase(uri = process.env.MONGODB_URI) {
     return { mode: 'memory', collections: Array.from(memoryCollections.keys()) };
   }
 
+  if (mongoose.connection.readyState === 1) {
+    activeMode = 'mongo';
+    return {
+      mode: 'mongo',
+      collections: Object.values(ALL_MODELS).map((m) => m.collection.name),
+    };
+  }
+
   try {
+    const isRemote = String(uri).startsWith('mongodb+srv://') || String(uri).includes('@');
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 1500,
-      connectTimeoutMS: 1500,
+      serverSelectionTimeoutMS: isRemote ? 10000 : 1500,
+      connectTimeoutMS: isRemote ? 10000 : 1500,
     });
     activeMode = 'mongo';
+    console.log('mongodb connected');
     for (const Model of Object.values(ALL_MODELS)) {
       await Model.createIndexes();
     }
@@ -526,7 +766,8 @@ export async function connectDatabase(uri = process.env.MONGODB_URI) {
       mode: 'mongo',
       collections: Object.values(ALL_MODELS).map((m) => m.collection.name),
     };
-  } catch {
+  } catch (err) {
+    console.warn(`[Database] MongoDB connection failed (${err.message}). Using in-memory store.`);
     activeMode = 'memory';
     return { mode: 'memory', collections: Array.from(memoryCollections.keys()) };
   }
@@ -661,10 +902,13 @@ export async function listCreatedCollections() {
     const cols = await mongoose.connection.db.listCollections().toArray();
     return cols.map((c) => c.name).sort();
   }
-  for (const Model of Object.values(ALL_MODELS)) {
-    initMemoryCollectionForModel(Model);
+  const populated = [];
+  for (const [name, rows] of memoryCollections.entries()) {
+    if (rows && rows.length > 0) {
+      populated.push(name);
+    }
   }
-  return Array.from(memoryCollections.keys()).sort();
+  return populated.sort();
 }
 
 /**

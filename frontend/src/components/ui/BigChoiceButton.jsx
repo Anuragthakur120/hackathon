@@ -66,7 +66,7 @@ export function BigChoiceButton({
         'w-full min-h-[76px] p-5 rounded-2xl border-2 text-left',
         'flex items-center justify-between gap-4 shadow-sm',
         'transition-all duration-200 motion-reduce:transition-none',
-        'hover:shadow-md hover:-translate-y-0.5',
+        'hover:shadow-md hover:border-slate-300 transition-all',
         'focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-500 focus-visible:ring-offset-2',
         'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
         selected ? palette.selected : palette.idle,

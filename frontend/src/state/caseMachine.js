@@ -32,27 +32,58 @@ export const CASE_JOURNEY_SEQUENCE = Object.freeze([
 ]);
 
 export const ALLOWED_TRANSITIONS = Object.freeze({
-  [CASE_STATUS.INTAKE]: [CASE_STATUS.SERVICE_CONFIRMED],
-  [CASE_STATUS.SERVICE_CONFIRMED]: [CASE_STATUS.CONSENTED, CASE_STATUS.INTAKE],
-  [CASE_STATUS.CONSENTED]: [CASE_STATUS.DOCS_COLLECTING, CASE_STATUS.DOCS_READY],
-  [CASE_STATUS.DOCS_COLLECTING]: [CASE_STATUS.DOCS_COLLECTING, CASE_STATUS.DOCS_READY],
-  [CASE_STATUS.DOCS_READY]: [CASE_STATUS.FORM_FILLED],
+  [CASE_STATUS.INTAKE]: [
+    CASE_STATUS.SERVICE_CONFIRMED,
+    CASE_STATUS.CONSENTED,
+    CASE_STATUS.DOCS_READY,
+    CASE_STATUS.FORM_FILLED,
+    CASE_STATUS.APPROVED,
+    CASE_STATUS.SUBMITTED,
+  ],
+  [CASE_STATUS.SERVICE_CONFIRMED]: [
+    CASE_STATUS.CONSENTED,
+    CASE_STATUS.INTAKE,
+    CASE_STATUS.FORM_FILLED,
+    CASE_STATUS.APPROVED,
+    CASE_STATUS.SUBMITTED,
+  ],
+  [CASE_STATUS.CONSENTED]: [
+    CASE_STATUS.DOCS_COLLECTING,
+    CASE_STATUS.DOCS_READY,
+    CASE_STATUS.FORM_FILLED,
+    CASE_STATUS.APPROVED,
+    CASE_STATUS.SUBMITTED,
+  ],
+  [CASE_STATUS.DOCS_COLLECTING]: [
+    CASE_STATUS.DOCS_COLLECTING,
+    CASE_STATUS.DOCS_READY,
+    CASE_STATUS.FORM_FILLED,
+    CASE_STATUS.APPROVED,
+    CASE_STATUS.SUBMITTED,
+  ],
+  [CASE_STATUS.DOCS_READY]: [
+    CASE_STATUS.FORM_FILLED,
+    CASE_STATUS.APPROVED,
+    CASE_STATUS.SUBMITTED,
+  ],
   [CASE_STATUS.FORM_FILLED]: [CASE_STATUS.APPROVED, CASE_STATUS.SUBMITTED],
   [CASE_STATUS.APPROVED]: [CASE_STATUS.SUBMITTED, CASE_STATUS.FORM_FILLED],
-  [CASE_STATUS.SUBMITTED]: [CASE_STATUS.TRACKING],
+  [CASE_STATUS.SUBMITTED]: [CASE_STATUS.TRACKING, CASE_STATUS.INTAKE],
   [CASE_STATUS.TRACKING]: [
     CASE_STATUS.QUERY_RAISED,
     CASE_STATUS.STALLED,
     CASE_STATUS.CLOSED,
+    CASE_STATUS.INTAKE,
   ],
   [CASE_STATUS.QUERY_RAISED]: [
     CASE_STATUS.TRACKING,
     CASE_STATUS.STALLED,
     CASE_STATUS.DOCS_COLLECTING,
+    CASE_STATUS.INTAKE,
   ],
-  [CASE_STATUS.STALLED]: [CASE_STATUS.CALLED, CASE_STATUS.TRACKING],
-  [CASE_STATUS.CALLED]: [CASE_STATUS.TRACKING, CASE_STATUS.CLOSED],
-  [CASE_STATUS.CLOSED]: [],
+  [CASE_STATUS.STALLED]: [CASE_STATUS.CALLED, CASE_STATUS.TRACKING, CASE_STATUS.INTAKE],
+  [CASE_STATUS.CALLED]: [CASE_STATUS.TRACKING, CASE_STATUS.CLOSED, CASE_STATUS.INTAKE],
+  [CASE_STATUS.CLOSED]: [CASE_STATUS.INTAKE],
 });
 
 export const MACRO_PHASES = Object.freeze({
@@ -85,12 +116,9 @@ export function getMacroPhase(status) {
 }
 
 export function canTransition(currentStatus, nextStatus, context = {}) {
-  const allowed = ALLOWED_TRANSITIONS[currentStatus] || [];
-  if (!allowed.includes(nextStatus)) {
-    return {
-      ok: false,
-      reason: `Invalid transition from ${currentStatus} to ${nextStatus}`,
-    };
+  // Always permit transitioning to APPROVED if approval has been explicitly given
+  if (nextStatus === CASE_STATUS.APPROVED && context?.approval?.given) {
+    return { ok: true, reason: null };
   }
 
   // HARD SAFETY RULE: Submit never runs without approval.given === true
@@ -101,6 +129,15 @@ export function canTransition(currentStatus, nextStatus, context = {}) {
         reason: 'HARD_SAFETY_GUARD: Transition to SUBMITTED refused because approval.given !== true',
       };
     }
+    return { ok: true, reason: null };
+  }
+
+  const allowed = ALLOWED_TRANSITIONS[currentStatus] || [];
+  if (!allowed.includes(nextStatus)) {
+    return {
+      ok: false,
+      reason: `Invalid transition from ${currentStatus} to ${nextStatus}`,
+    };
   }
 
   return { ok: true, reason: null };

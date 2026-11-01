@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -9,7 +10,11 @@ describe('Module F4: Steps 11-16 (Tracking, Day-10 Query, +21 din Stall, Office 
   let spokenUtterances = [];
 
   beforeEach(async () => {
-    window.localStorage.clear();
+    if (typeof globalThis.localStorage !== 'undefined' && globalThis.localStorage.clear) {
+      globalThis.localStorage.clear();
+    } else if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.clear();
+    }
     await mockApi.demoReset({ language: 'mr-IN' });
 
     spokenUtterances = [];

@@ -162,7 +162,7 @@ describe('Module F1: Frontend Foundation, i18n, Mock API & Safety State Machine'
 
   it('renders Language Picker in native scripts, switches & persists language, and shows prototype footer', () => {
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/languages']}>
         <AppProvider>
           <AppRoutes />
         </AppProvider>

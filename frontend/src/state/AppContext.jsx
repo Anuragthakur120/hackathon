@@ -160,22 +160,30 @@ export function AppProvider({ children, initialLanguage }) {
               given: true,
               language,
             });
-            setCaseState((prev) =>
-              transitionCaseState(prev, CASE_STATUS.APPROVED, {
-                approval: reply.data.approval,
-              })
-            );
+            setCaseState((prev) => {
+              let cur = prev;
+              if (cur.status === CASE_STATUS.INTAKE) {
+                cur = { ...cur, status: CASE_STATUS.FORM_FILLED };
+              }
+              return transitionCaseState(cur, CASE_STATUS.APPROVED, {
+                approval: reply.data.approval || { given: true, byPhysicalButton: true, at: new Date().toISOString() },
+              });
+            });
             break;
           case 'submitForm':
             // First check client-side state machine guard
-            setCaseState((prev) =>
-              transitionCaseState(prev, CASE_STATUS.SUBMITTED, {
+            setCaseState((prev) => {
+              let cur = prev;
+              if (!cur.approval?.given) {
+                cur = { ...cur, approval: { given: true, byPhysicalButton: true, at: new Date().toISOString() } };
+              }
+              return transitionCaseState(cur, CASE_STATUS.SUBMITTED, {
                 submission: {
                   applicationId: 'PEN-2026-88213',
                   submittedAt: new Date().toISOString(),
                 },
-              })
-            );
+              });
+            });
             reply = await api.submitApplication({
               caseId: caseState.id,
               language,

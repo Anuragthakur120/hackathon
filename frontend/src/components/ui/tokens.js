@@ -7,7 +7,7 @@ export const DESIGN_TOKENS = Object.freeze({
   pageBackground: 'bg-slate-50',
   cardBase:
     'bg-white rounded-2xl shadow-sm border border-slate-200 transition-all duration-200',
-  cardHover: 'hover:shadow-lg hover:-translate-y-0.5',
+  cardHover: 'hover:shadow-md transition-shadow',
   touchTargetMinPx: 56,
   baseFontSizePx: 18,
   fonts: [

@@ -572,21 +572,52 @@ export function createAgentAdapter({
         };
       }
 
+      const text = String(params.transcript || params.answer || '').toLowerCase();
+      let service = {
+        id: 'pension_restoration',
+        catalogId: 'pension',
+        name: 'Old Age Pension Restoration',
+      };
+      let clarifying = 'kaunsi pension?';
+      let options = ['old_age_pension', 'widow_disability_pension'];
+
+      if (/scholar|शिष्यवृत्ती|छात्रवृत्ति|mahadbt|mptass/i.test(text)) {
+        service = {
+          id: 'scholarship',
+          catalogId: 'scholarship',
+          name: 'Post-Matric Scholarship (MahaDBT)',
+        };
+        clarifying = 'Konse course ke liye apply karna hai?';
+        options = ['diploma_polytechnic', 'degree_college', 'post_graduate'];
+      } else if (/income|उत्पन्न|दाखला|आय प्रमाण/i.test(text)) {
+        service = {
+          id: 'income_certificate',
+          catalogId: 'income_certificate',
+          name: 'Tahsildar Income Certificate',
+        };
+        clarifying = 'Kis kaam ke liye income certificate chahiye?';
+        options = ['scholarship_fee_waiver', 'ration_card_quota', 'government_scheme'];
+      } else if (/ration|राशन|रेशन/i.test(text)) {
+        service = {
+          id: 'ration_card',
+          catalogId: 'ration_card',
+          name: 'Food & Civil Ration Card',
+        };
+        clarifying = 'Ration card me kya karna hai?';
+        options = ['add_family_member', 'new_ration_card', 'quota_check'];
+      }
+
       const copy = getAgentCopy(lang, 'intake');
       return {
         display: copy.display,
         speech: copy.speech,
         data: {
-          caseId: params.caseId || 'CASE-PEN-2026-001',
+          caseId: params.caseId || (service.catalogId === 'scholarship' ? 'CASE-SCH-2026-001' : 'CASE-PEN-2026-001'),
           status: 'INTAKE',
-          service: {
-            id: 'pension_restoration',
-            catalogId: 'pension',
-            name: 'Old Age Pension Restoration',
-          },
+          service,
           confidence: 0.96,
-          clarifyingQuestion: 'kaunsi pension?',
-          options: ['old_age_pension', 'widow_disability_pension'],
+          clarifyingQuestion: clarifying,
+          options,
           language: lang,
         },
       };

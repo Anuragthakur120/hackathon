@@ -30,7 +30,7 @@ export function Card({
       className={[
         'bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden',
         'transition-all duration-200 motion-reduce:transition-none',
-        hoverable ? 'hover:shadow-lg hover:-translate-y-0.5' : '',
+        hoverable ? 'hover:shadow-md transition-shadow' : '',
         className,
       ]
         .filter(Boolean)

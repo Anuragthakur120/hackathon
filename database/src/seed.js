@@ -6,6 +6,7 @@ import {
   ServiceCatalog,
   connectDatabase,
   saveDocument,
+  findDocuments,
   updateOneDocument,
   createEncryptedProfile,
   listCreatedCollections,
@@ -149,8 +150,16 @@ export async function triggerPlus21DaysCaseStall(caseId = DEMO_CASE_ID) {
  *   5. Mock portal Case (Layer 3, CASE-DEMO-001) with Day-10 query & +21-day stall history
  *   6. AuditLog records with masked payloads
  */
-export async function seedDatabase(uri = process.env.MONGODB_URI) {
+export async function seedDatabase(uri = process.env.MONGODB_URI || process.env.MONGO_URL) {
   const connectionInfo = await connectDatabase(uri);
+
+  // In MongoDB mode, skip re-seeding if catalogs already exist to avoid duplicate key errors
+  if (connectionInfo.mode === 'mongo') {
+    const existing = await findDocuments(ServiceCatalog, {});
+    if (existing.length > 0) {
+      return { seededCatalogs: existing, alreadySeeded: true };
+    }
+  }
 
   // 1. Validate & seed all 3 service catalogs
   const catalogs = loadAllCatalogs();

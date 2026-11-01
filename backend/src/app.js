@@ -9,8 +9,11 @@ import {
   centralErrorHandler,
 } from './middleware.js';
 import { createCoreRouter } from './routes/coreRoutes.js';
+import { createCitizenRouter } from './routes/citizenRoutes.js';
 import { createCaseRouter } from './routes/caseRoutes.js';
 import { createAgentRouter } from './routes/agentRoutes.js';
+import { createPlatformRouter } from './routes/platformRoutes.js';
+import { createVoiceRouter } from './routes/voiceRoutes.js';
 import { defaultPortalAdapter } from './portalAdapter.js';
 import { defaultAgentAdapter } from './agentAdapter.js';
 
@@ -36,13 +39,24 @@ export function createApp({
   app.use(auditLogMiddleware);
 
   const coreRouter = createCoreRouter();
+  const citizenRouter = createCitizenRouter({ agentAdapter, portalAdapter });
   const caseRouter = createCaseRouter({ portalAdapter });
   const agentRouter = createAgentRouter({ agentAdapter, portalAdapter });
+  const platformRouter = createPlatformRouter({ agentAdapter, portalAdapter });
+  const voiceRouter = createVoiceRouter();
+
+  // Voice endpoints (/api/stt, /api/tts) are mounted first; they hold provider keys server-side only.
+  app.use('/', voiceRouter);
+  app.use('/api', voiceRouter);
 
   app.use('/', coreRouter);
+  app.use('/', platformRouter);
+  app.use('/', citizenRouter);
   app.use('/', caseRouter);
   app.use('/', agentRouter);
   app.use('/api', coreRouter);
+  app.use('/api', platformRouter);
+  app.use('/api', citizenRouter);
   app.use('/api', caseRouter);
   app.use('/api', agentRouter);
 
@@ -145,12 +159,14 @@ export function invokeApp(
         ? setCookieHeader
         : [setCookieHeader];
 
-      resolve({
-        status: res.statusCode,
-        headers: resHeaders,
-        setCookies,
-        body: parsedBody,
-        text: payloadText,
+      setImmediate(() => {
+        resolve({
+          status: res.statusCode,
+          headers: resHeaders,
+          setCookies,
+          body: parsedBody,
+          text: payloadText,
+        });
       });
       return result;
     };

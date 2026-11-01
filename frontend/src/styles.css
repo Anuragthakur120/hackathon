@@ -190,38 +190,6 @@ body {
   border-color: #0f172a;
 }
 
-.ns-progress-bar {
-  background: #ffffff;
-  border-bottom: 2px solid #cbd5e1;
-  padding: 0.75rem 1.25rem;
-}
-
-.ns-progress-grid {
-  max-width: 960px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0.75rem;
-}
-
-.ns-phase-step {
-  padding: 0.75rem 1rem;
-  border: 2px solid #94a3b8;
-  border-radius: 10px;
-  background: #f1f5f9;
-}
-
-.ns-phase-step-active {
-  border-color: var(--ns-primary);
-  background: #dbeafe;
-  box-shadow: 0 0 0 2px var(--ns-primary);
-}
-
-.ns-phase-title {
-  font-weight: 800;
-  font-size: 1.05rem;
-}
-
 .ns-phase-desc {
   font-size: 0.9rem;
   color: var(--ns-text-muted);
@@ -230,9 +198,7 @@ body {
 .ns-main {
   flex: 1;
   width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 1.25rem;
+  min-width: 0;
 }
 
 .ns-card {

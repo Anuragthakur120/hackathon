@@ -1,6 +1,10 @@
 import { toBcp47Lang } from '../i18n/index.js';
 
 let voices = [];
+let activeUtterances = [];
+if (typeof window !== 'undefined') {
+  window.__ns_active_utterances = activeUtterances;
+}
 
 function getSynth() {
   if (typeof globalThis !== 'undefined' && globalThis.speechSynthesis) {
@@ -82,6 +86,15 @@ export function speak(
   loadVoices();
   synth.cancel();
 
+  // Handle Chrome paused state bug
+  if (synth.paused) {
+    try {
+      synth.resume();
+    } catch {
+      // Ignore
+    }
+  }
+
   if (typeof onStart === 'function') {
     onStart();
   }
@@ -100,16 +113,50 @@ export function speak(
       this.text = t;
     };
 
+  activeUtterances = [];
+  if (typeof window !== 'undefined') {
+    window.__ns_active_utterances = activeUtterances;
+  }
+
   const utterances = parts.map((p, i) => {
     const u = new UtteranceCtor(p);
-    u.lang = bcp47;
     u.rate = rate;
     const v = pickVoice(bcp47);
-    if (v) u.voice = v;
-    if (i === parts.length - 1 && typeof onEnd === 'function') {
-      u.onend = onEnd;
+    if (v) {
+      u.voice = v;
+      // When voice is picked, align u.lang with voice's language so Chrome doesn't drop the audio
+      u.lang = v.lang || bcp47;
+    } else {
+      u.lang = bcp47;
     }
-    synth.speak(u);
+
+    const isLast = i === parts.length - 1;
+    if (isLast && typeof onEnd === 'function') {
+      u.onend = () => {
+        activeUtterances = [];
+        if (typeof window !== 'undefined') window.__ns_active_utterances = [];
+        onEnd();
+      };
+    }
+
+    u.onerror = (err) => {
+      console.debug('Speech utterance ended or skipped:', err);
+      if (isLast && typeof onEnd === 'function') {
+        activeUtterances = [];
+        if (typeof window !== 'undefined') window.__ns_active_utterances = [];
+        onEnd();
+      }
+    };
+
+    activeUtterances.push(u);
+    try {
+      synth.speak(u);
+    } catch (speakErr) {
+      console.warn('synth.speak error:', speakErr);
+      if (isLast && typeof onEnd === 'function') {
+        onEnd();
+      }
+    }
     return u;
   });
 
@@ -162,10 +209,32 @@ export function getFixedAudioUrl(lang = 'mr-IN', slotKey = 'welcome') {
 }
 
 export function playFixedAudioOrSpeak(
-  slotKey,
+  slotKeyOrOptions,
   fallbackText,
-  { lang = 'mr-IN', rate = 0.85, onStart, onEnd } = {}
+  options = {}
 ) {
+  let slotKey = slotKeyOrOptions;
+  let text = fallbackText;
+  let opts = options;
+
+  // Support polymorphic signatures:
+  // 1. playFixedAudioOrSpeak('welcome', text, { lang })
+  // 2. playFixedAudioOrSpeak({ text: '...', lang: '...' })
+  // 3. playFixedAudioOrSpeak('Text to speak')
+  if (typeof slotKeyOrOptions === 'object' && slotKeyOrOptions !== null) {
+    text = slotKeyOrOptions.text || slotKeyOrOptions.speech || slotKeyOrOptions.display || slotKeyOrOptions.fallbackText || '';
+    slotKey = slotKeyOrOptions.slotKey || 'welcome';
+    opts = slotKeyOrOptions;
+  } else if (typeof slotKeyOrOptions === 'string' && fallbackText === undefined) {
+    text = slotKeyOrOptions;
+    slotKey = 'welcome';
+  }
+
+  const lang = opts.lang || 'mr-IN';
+  const rate = opts.rate || 0.85;
+  const onStart = opts.onStart;
+  const onEnd = opts.onEnd;
+
   const audioUrl = getFixedAudioUrl(lang, slotKey);
   if (
     typeof window !== 'undefined' &&
@@ -180,12 +249,12 @@ export function playFixedAudioOrSpeak(
         if (typeof onEnd === 'function') onEnd();
       };
       audio.onerror = () => {
-        speak(fallbackText, { lang, rate, onEnd });
+        speak(text, { lang, rate, onEnd });
       };
       const playPromise = audio.play();
       if (playPromise && typeof playPromise.catch === 'function') {
         playPromise.catch(() => {
-          speak(fallbackText, { lang, rate, onEnd });
+          speak(text, { lang, rate, onEnd });
         });
       }
       return;
@@ -193,6 +262,5 @@ export function playFixedAudioOrSpeak(
       // Fall back to browser TTS
     }
   }
-  speak(fallbackText, { lang, rate, onStart, onEnd });
+  speak(text, { lang, rate, onStart, onEnd });
 }
-

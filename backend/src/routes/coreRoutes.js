@@ -27,15 +27,45 @@ import {
   maskBankAccount,
   sanitizeForApiResponse,
 } from '../privacy.js';
-
-const issuedOtpStore = new Map();
+import {
+  normalizeIndianPhone,
+  isValidIndianMobile,
+  sendOtpToPhone,
+  verifyOtpCode,
+} from '../smsService.js';
 
 function normalizePhoneDigits(phone) {
-  return String(phone || '').replace(/\D/g, '');
+  return normalizeIndianPhone(phone);
 }
 
 function isValidIndianPhone(digits) {
-  return /^\d{10}$/.test(digits);
+  return isValidIndianMobile(digits);
+}
+
+export function toCitizenDto(user) {
+  return {
+    id: String(user._id),
+    name: user.name || '',
+    email: user.email || '',
+    phoneMasked: user.phoneMasked,
+    aadhaarMasked:
+      user.aadhaarMasked ||
+      (user.phone === '9876543210' || user.name === 'Ramabai Kulkarni'
+        ? 'XXXX-XXXX-4821'
+        : null),
+    bankAccountMasked:
+      user.bankAccountMasked ||
+      (user.phone === '9876543210' || user.name === 'Ramabai Kulkarni'
+        ? 'XXXXXXXX9012'
+        : null),
+    address: user.address || '',
+    state: user.state || '',
+    district: user.district || '',
+    language: user.language,
+    role: user.role,
+    profileCompleted: Number(user.profileCompleted || 0),
+    createdAt: user.createdAt,
+  };
 }
 
 export function createCoreRouter() {
@@ -74,21 +104,26 @@ export function createCoreRouter() {
         });
       }
 
-      const otpMode = process.env.OTP_MODE || 'mock';
-      const mockOtp = process.env.MOCK_OTP || '123456';
-      const otpToIssue = otpMode === 'mock' ? mockOtp : mockOtp;
+      const requestedMode = String(req.body?.mode || '').toLowerCase();
+      if (requestedMode === 'signup') {
+        const existing = await findOneDocument(User, { phone: digits });
+        if (existing) {
+          return res.status(409).json({
+            error: 'DUPLICATE_PHONE',
+            code: 'DUPLICATE_PHONE',
+            display: 'This mobile number is already registered. Please log in.',
+            speech: 'This mobile number is already registered.',
+            data: { otpSent: false },
+          });
+        }
+      }
 
-      issuedOtpStore.set(digits, {
-        otp: otpToIssue,
-        language,
-        expiresAt: Date.now() + 5 * 60 * 1000,
-      });
-
-      const phoneMasked = maskPhone(digits);
+      const sendResult = await sendOtpToPhone(digits, language);
+      const phoneMasked = sendResult.phoneMasked;
       req.auditMeta = {
         actor: 'CITIZEN',
         action: 'AUTH_OTP_REQUESTED',
-        extra: { phoneMasked, mode: otpMode },
+        extra: { phoneMasked, mode: sendResult.mode },
       };
 
       return res.status(200).json({
@@ -97,10 +132,20 @@ export function createCoreRouter() {
         data: {
           phoneMasked,
           otpSent: true,
-          mode: otpMode,
+          mode: sendResult.mode,
+          isMock: sendResult.isMock,
         },
       });
     } catch (err) {
+      if (err.code === 'RATE_LIMIT_EXCEEDED') {
+        return res.status(429).json({
+          error: 'RATE_LIMIT_EXCEEDED',
+          code: 'RATE_LIMIT_EXCEEDED',
+          display: 'कृपया नवीन OTP मागवण्यापूर्वी थोडा वेळ थांबा.',
+          speech: 'कृपया थोडा वेळ थांबा.',
+          data: { otpSent: false, retryAfter: err.retryAfter },
+        });
+      }
       return next(err);
     }
   });
@@ -120,34 +165,48 @@ export function createCoreRouter() {
         });
       }
 
-      const otpMode = process.env.OTP_MODE || 'mock';
-      const expectedMockOtp = process.env.MOCK_OTP || '123456';
-      const stored = issuedOtpStore.get(digits);
-      const validOtp =
-        (otpMode === 'mock' && otp === expectedMockOtp) ||
-        (stored && stored.otp === otp && stored.expiresAt >= Date.now());
-
-      if (!validOtp) {
+      try {
+        verifyOtpCode(digits, otp);
+      } catch (otpErr) {
         req.auditMeta = {
           actor: 'CITIZEN',
           action: 'AUTH_OTP_FAILED',
           extra: { phoneMasked: maskPhone(digits) },
         };
-        return res.status(401).json({
-          error: 'INVALID_OTP',
-          display: 'चुकीचा OTP. कृपया पुन्हा प्रयत्न करा.',
+        const status = otpErr.code === 'LOCKED' ? 429 : 401;
+        return res.status(status).json({
+          error: otpErr.code || 'INVALID_OTP',
+          code: otpErr.code || 'INVALID_OTP',
+          display:
+            otpErr.code === 'EXPIRED_OTP'
+              ? 'OTP कालावधी संपला आहे. कृपया नवीन OTP मागवा.'
+              : otpErr.code === 'LOCKED'
+              ? 'खूप चुकीचे प्रयत्न झाले आहेत. कृपया ३० सेकंद थांबा.'
+              : 'चुकीचा OTP. कृपया पुन्हा प्रयत्न करा.',
           speech: 'ओटीपी चुकीचा आहे. पुन्हा प्रयत्न करा.',
-          data: { authenticated: false },
+          data: { authenticated: false, remainingSeconds: otpErr.remainingSeconds },
         });
       }
 
-      issuedOtpStore.delete(digits);
-
+      const mode = String(req.body?.mode || '').toLowerCase();
       let user = await findOneDocument(User, { phone: digits });
+      if (mode === 'signup' && user) {
+        return res.status(409).json({
+          error: 'DUPLICATE_PHONE',
+          code: 'DUPLICATE_PHONE',
+          display: 'This mobile number is already registered. Please log in.',
+          speech: 'This mobile number is already registered.',
+          data: { authenticated: false },
+        });
+      }
       if (!user) {
+        const isDemoCitizen =
+          process.env.DEMO_MODE === 'true' && digits === '9876543210';
+        const signupName = String(req.body?.name || req.body?.fullName || '').trim().slice(0, 80);
         user = await saveDocument(User, {
           phone: digits,
           phoneMasked: maskPhone(digits),
+          name: isDemoCitizen ? 'Ramabai Kulkarni' : (signupName || 'Citizen'),
           language,
           role: 'citizen',
         });
@@ -181,17 +240,28 @@ export function createCoreRouter() {
         data: {
           authenticated: true,
           token,
-          citizen: {
-            id: String(user._id),
-            name: 'Ramabai Kulkarni',
-            age: 68,
-            aadhaarMasked: 'XXXX-XXXX-4821',
-            phoneMasked: user.phoneMasked,
-            bankAccountMasked: 'XXXXXXXX9012',
-            language: user.language,
-            role: user.role,
-          },
+          citizen: toCitizenDto(user),
         },
+      });
+    } catch (err) {
+      return next(err);
+    }
+  });
+
+  router.get('/auth/me', requireCitizenAuth, async (req, res, next) => {
+    try {
+      const user = await findOneDocument(User, { _id: req.user.id });
+      if (!user) {
+        return res.status(401).json({
+          error: 'USER_NOT_FOUND',
+          display: 'Session is no longer valid. Please log in again.',
+          data: { authenticated: false },
+        });
+      }
+      return res.status(200).json({
+        display: 'Current citizen',
+        speech: 'Current citizen',
+        data: { authenticated: true, citizen: toCitizenDto(user) },
       });
     } catch (err) {
       return next(err);
