@@ -6,7 +6,6 @@ import { LanguageSwitcher } from '../components/LanguageSwitcher.jsx';
 import { AuthBrandPanel } from '../components/AuthBrandPanel.jsx';
 import { OtpInput } from '../components/ui/OtpInput.jsx';
 import { Button } from '../components/ui/Button.jsx';
-import { Input } from '../components/ui/Input.jsx';
 
 export function LoginScreen() {
   const { t, language } = useApp();
@@ -210,19 +209,21 @@ export function LoginScreen() {
                     {t('auth.phoneLabel')}
                   </label>
                   <div className="relative flex items-center rounded-2xl border-2 border-slate-200 bg-white shadow-xs transition-all duration-200 focus-within:border-indigo-600 focus-within:ring-4 focus-within:ring-indigo-500/20 hover:border-slate-300">
-                    <span className="flex items-center gap-1.5 pl-4 pr-2 text-sm font-bold text-slate-600 border-r border-slate-100 select-none">
+                    <span className="flex items-center gap-1.5 pl-4 pr-3 text-sm font-bold text-slate-600 border-r border-slate-200 select-none">
                       <span aria-hidden="true">🇮🇳</span>
                       <span>+91</span>
                     </span>
-                    <Input
+                    <input
                       id="login-phone"
                       data-testid="login-phone-input"
                       type="tel"
                       inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={10}
                       value={phone}
                       onChange={handlePhoneChange}
                       placeholder={t('auth.phonePlaceholder')}
-                      className="border-0 bg-transparent py-3.5 pl-3 pr-4 text-base sm:text-lg font-bold tracking-wide text-slate-900 focus:outline-none focus:ring-0 shadow-none"
+                      className="w-full min-h-[52px] bg-transparent py-3 pl-3 pr-4 text-base sm:text-lg font-bold tracking-wider text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none border-0"
                       autoFocus
                     />
                   </div>
