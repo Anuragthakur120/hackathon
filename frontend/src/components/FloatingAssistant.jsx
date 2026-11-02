@@ -1,12 +1,17 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../state/AppContext.jsx';
 import { playFixedAudioOrSpeak } from '../voice/speak.js';
 
 export function FloatingAssistant({ onQuickPrompt }) {
   const { t, language } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+
+  const isAuthPage =
+    location.pathname.startsWith('/login') ||
+    location.pathname.startsWith('/signup');
 
   const handleSpeakSample = () => {
     playFixedAudioOrSpeak(
@@ -41,8 +46,15 @@ export function FloatingAssistant({ onQuickPrompt }) {
 
   return (
     <>
-      {/* Floating Action Button */}
-      <aside aria-label="NagarSathi Assistant" className="fixed bottom-20 md:bottom-8 right-5 z-40">
+      {/* Floating Action Button - Positioned to never overlap login controls */}
+      <aside
+        aria-label="NagarSathi Assistant"
+        className={`fixed z-40 transition-all duration-200 ${
+          isAuthPage
+            ? 'bottom-4 right-4 sm:bottom-6 sm:right-6'
+            : 'bottom-20 md:bottom-8 right-4 sm:right-6'
+        }`}
+      >
         <button
           type="button"
           data-testid="floating-assistant-btn"
@@ -50,12 +62,12 @@ export function FloatingAssistant({ onQuickPrompt }) {
           aria-expanded={isOpen}
           onClick={handleToggle}
           onDoubleClick={handleAssistantClick}
-          className="group relative flex min-h-[56px] items-center gap-2.5 rounded-full bg-gradient-to-r from-indigo-600 via-blue-600 to-teal-500 px-5 py-3 text-white shadow-xl shadow-indigo-500/30 transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300 active:scale-95 cursor-pointer"
+          className="group relative flex min-h-[48px] sm:min-h-[52px] items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 via-blue-600 to-teal-500 px-3.5 py-2.5 sm:px-5 sm:py-3 text-white shadow-xl shadow-indigo-500/30 transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300 active:scale-95 cursor-pointer"
         >
           {/* Subtle glowing ring */}
           <span className="absolute -inset-1 -z-10 rounded-full bg-gradient-to-r from-indigo-500 to-teal-400 opacity-60 blur-sm group-hover:opacity-100 animate-pulse" />
-          <span className="text-xl" aria-hidden="true">🎙️</span>
-          <span className="text-sm font-bold tracking-wide">
+          <span className="text-xl leading-none" aria-hidden="true">🎙️</span>
+          <span className="hidden xs:inline-block text-xs sm:text-sm font-bold tracking-wide">
             {t('floatingAssistantLabel')}
           </span>
         </button>

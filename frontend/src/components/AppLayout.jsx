@@ -14,7 +14,14 @@ export function AppLayout({ children }) {
   const logout = useAuthStore((state) => state.logout);
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
+
+  // Close menus on route change
+  useEffect(() => {
+    setUserMenuOpen(false);
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   // Close user menu on outside click or Escape
   useEffect(() => {
@@ -298,28 +305,96 @@ export function AppLayout({ children }) {
 
       {/* Mobile Bottom Tab Bar */}
       {user ? (
-        <nav
-          data-testid="mobile-tab-bar"
-          aria-label="Mobile Navigation"
-          className="fixed bottom-0 inset-x-0 z-30 flex h-16 items-center justify-around border-t border-slate-200 bg-white/95 px-2 backdrop-blur-md md:hidden shadow-lg"
-        >
-          {mobileNavItems.map((item) => {
-            const isActive = currentNav === item.id;
-            return (
-              <Link
-                key={item.id}
-                to={item.path}
-                data-testid={item.mobileTestId}
-                className={`flex flex-col items-center justify-center py-1 px-3 text-[11px] font-bold transition-colors ${
-                  isActive ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                <span className="text-lg" aria-hidden="true">{item.icon}</span>
-                <span className="truncate max-w-[70px]">{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
+        <>
+          <nav
+            data-testid="mobile-tab-bar"
+            aria-label="Mobile Navigation"
+            className="fixed bottom-0 inset-x-0 z-30 flex h-16 items-center justify-around border-t border-slate-200 bg-white/95 px-1 backdrop-blur-md md:hidden shadow-lg"
+          >
+            {mobileNavItems.map((item) => {
+              const isActive = currentNav === item.id;
+              return (
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  data-testid={item.mobileTestId}
+                  className={`flex flex-col items-center justify-center py-1 px-2 text-[10px] sm:text-[11px] font-bold transition-colors ${
+                    isActive ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  <span className="text-lg" aria-hidden="true">{item.icon}</span>
+                  <span className="truncate max-w-[64px]">{item.label}</span>
+                </Link>
+              );
+            })}
+
+            {/* 5th Tab: All Services Drawer Toggle (Provides 100% Mobile Parity) */}
+            <button
+              type="button"
+              data-testid="mobile-tab-all"
+              aria-label="All Services"
+              aria-expanded={mobileMenuOpen}
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              className={`flex flex-col items-center justify-center py-1 px-2 text-[10px] sm:text-[11px] font-bold transition-colors cursor-pointer ${
+                mobileMenuOpen ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <span className="text-lg" aria-hidden="true">🏛️</span>
+              <span className="truncate max-w-[64px]">All (10)</span>
+            </button>
+          </nav>
+
+          {/* All 10 Services Mobile Drawer (Guarantees zero options missing on Mobile) */}
+          {mobileMenuOpen ? (
+            <div className="fixed inset-0 z-50 flex flex-col justify-end md:hidden">
+              <div
+                className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200"
+                onClick={() => setMobileMenuOpen(false)}
+                aria-hidden="true"
+              />
+              <div className="relative z-10 rounded-t-3xl border-t border-slate-200 bg-white p-5 shadow-2xl max-h-[85vh] flex flex-col animate-in slide-in-from-bottom duration-250">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🏛️</span>
+                    <div>
+                      <h3 className="text-base font-black text-slate-900">All Citizen Services</h3>
+                      <p className="text-[11px] font-semibold text-slate-500">10 options matching desktop</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setMobileMenuOpen(false)}
+                    aria-label="Close menu"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 text-sm font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 overflow-y-auto overscroll-contain pb-6">
+                  {navItems.map((item) => {
+                    const isActive = currentNav === item.id;
+                    return (
+                      <Link
+                        key={item.id}
+                        to={item.path}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center gap-2.5 rounded-2xl p-3 text-xs font-bold transition-all border ${
+                          isActive
+                            ? 'bg-gradient-to-r from-indigo-50 to-blue-50 text-indigo-900 border-indigo-200 shadow-xs'
+                            : 'bg-slate-50/80 text-slate-700 border-slate-100 hover:bg-slate-100'
+                        }`}
+                      >
+                        <span className="text-lg">{item.icon}</span>
+                        <span className="truncate">{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </>
       ) : null}
 
       {/* Persistent Floating AI Assistant Button (hidden when on full assistant screen) */}
