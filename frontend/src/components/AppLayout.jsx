@@ -279,8 +279,8 @@ export function AppLayout({ children }) {
               </div>
             </div>
 
-            {/* Bottom Style Guide shortcut */}
-            <div className="border-t border-slate-100 pt-3">
+            {/* Bottom Style Guide shortcut & Logout */}
+            <div className="border-t border-slate-100 pt-3 space-y-1">
               <Link
                 to="/dev/style-guide"
                 className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors"
@@ -288,6 +288,14 @@ export function AppLayout({ children }) {
                 <span>🎨</span>
                 <span>{t('auth.navStyleGuide')}</span>
               </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer text-left"
+              >
+                <span>🚪</span>
+                <span>{t('auth.logoutBtn')}</span>
+              </button>
             </div>
           </aside>
         ) : null}
@@ -371,7 +379,7 @@ export function AppLayout({ children }) {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 overflow-y-auto overscroll-contain pb-6">
+                <div className="grid grid-cols-2 gap-2 overflow-y-auto overscroll-contain pb-2">
                   {navItems.map((item) => {
                     const isActive = currentNav === item.id;
                     return (
@@ -390,6 +398,20 @@ export function AppLayout({ children }) {
                       </Link>
                     );
                   })}
+                </div>
+
+                <div className="border-t border-slate-100 pt-3 mt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center justify-center gap-2 rounded-2xl bg-rose-50 p-3 text-xs font-bold text-rose-700 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer"
+                  >
+                    <span>🚪</span>
+                    <span>{t('auth.logoutBtn')}</span>
+                  </button>
                 </div>
               </div>
             </div>

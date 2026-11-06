@@ -18,8 +18,8 @@ export const MOCK_JWT_TOKEN = 'mock-jwt-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.nag
 export const useAuthStore = create(
   persist(
     (set, get) => ({
-      user: DEMO_CITIZEN,
-      token: MOCK_JWT_TOKEN,
+      user: null,
+      token: null,
       otpSentTo: null,
       registeredUsers: [
         {
@@ -169,6 +169,48 @@ export const useAuthStore = create(
         return { user: citizenUser, token };
       },
 
+      loginWithPassword: async ({ emailOrUsername, password, rememberMe = true }) => {
+        const identifier = String(emailOrUsername || '').trim();
+        const pwd = String(password || '').trim();
+
+        if (!identifier) {
+          const err = new Error('EMAIL_REQUIRED');
+          err.code = 'EMAIL_REQUIRED';
+          throw err;
+        }
+
+        if (!pwd || pwd.length < 4) {
+          const err = new Error('INVALID_PASSWORD');
+          err.code = 'INVALID_PASSWORD';
+          throw err;
+        }
+
+        // Generate citizen profile or link to demo citizen
+        const citizenUser = {
+          id: 'CITIZEN-RAMABAI-01',
+          name: identifier.includes('@') ? identifier.split('@')[0] : identifier,
+          phone: '9876543210',
+          email: identifier.includes('@') ? identifier : `${identifier}@nagarsathi.gov.in`,
+          language: get().user?.language || 'en-IN',
+          role: 'citizen',
+          aadhaarMasked: 'XXXX-XXXX-4821',
+          phoneMasked: 'XXXXXX3210',
+          bankAccountMasked: 'XXXXXXXX9012',
+          createdAt: new Date().toISOString(),
+        };
+
+        const token = `mock-jwt-${citizenUser.id}-${Date.now()}`;
+        set({
+          user: citizenUser,
+          token,
+          otpSentTo: null,
+          failedAttempts: 0,
+          lockedUntil: null,
+        });
+
+        return { user: citizenUser, token };
+      },
+
       signup: async ({ name: _name, phone, language = 'en-IN', termsAccepted = true }) => {
         if (!termsAccepted) {
           const err = new Error('TERMS_REQUIRED');
@@ -186,6 +228,13 @@ export const useAuthStore = create(
           failedAttempts: 0,
           lockedUntil: null,
         });
+        try {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            window.localStorage.removeItem('nagarsathi_auth');
+          }
+        } catch {
+          // ignore localStorage access issues in restricted contexts
+        }
         await mockApi.auth.logout();
       },
 
@@ -209,6 +258,18 @@ export const useAuthStore = create(
     }),
     {
       name: 'nagarsathi_auth',
+      version: 2,
+      migrate: (persistedState, version) => {
+        // Reset legacy unauthenticated visitors whose storage was pre-seeded with DEMO_CITIZEN
+        if (!version || version < 2) {
+          return {
+            user: null,
+            token: null,
+            registeredUsers: persistedState?.registeredUsers || [],
+          };
+        }
+        return persistedState;
+      },
       partialize: (state) => ({
         user: state.user,
         token: state.token,
