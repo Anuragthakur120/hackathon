@@ -44,7 +44,7 @@ export function StatisticsCard({
   return (
     <div
       data-testid={testId}
-      className={`relative overflow-hidden rounded-2xl border ${scheme.border} bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md`}
+      className={`relative overflow-hidden rounded-2xl border ${scheme.border} dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md text-slate-900 dark:text-slate-100`}
     >
       <div className="flex items-center justify-between">
         <div>

@@ -26,18 +26,18 @@ export function PageHeader({
         ) : null}
 
         <div className="flex items-center gap-2.5">
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             {title}
           </h1>
           {badge ? (
-            <span className="rounded-full bg-indigo-50 border border-indigo-200/80 px-2.5 py-0.5 text-xs font-bold text-indigo-700">
+            <span className="rounded-full bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200/80 dark:border-indigo-800 px-2.5 py-0.5 text-xs font-bold text-indigo-700 dark:text-indigo-300">
               {badge}
             </span>
           ) : null}
         </div>
 
         {subtitle ? (
-          <p className="mt-1 text-sm text-slate-600 max-w-3xl leading-relaxed">
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
             {subtitle}
           </p>
         ) : null}

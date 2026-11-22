@@ -2,9 +2,9 @@ const VARIANT_CLASSES = {
   primary:
     'bg-gradient-to-r from-indigo-600 via-blue-600 to-teal-500 text-white border border-transparent shadow-sm hover:from-indigo-700 hover:via-blue-700 hover:to-teal-600 active:scale-[0.99] focus-visible:ring-indigo-500',
   secondary:
-    'bg-white text-slate-900 border-2 border-slate-300 shadow-sm hover:bg-slate-100 hover:border-slate-400 active:bg-slate-200 focus-visible:ring-slate-500',
+    'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-2 border-slate-300 dark:border-slate-700 shadow-sm hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-400 active:bg-slate-200 focus-visible:ring-slate-500',
   ghost:
-    'bg-transparent text-slate-800 border border-transparent hover:bg-slate-100 active:bg-slate-200 focus-visible:ring-slate-500',
+    'bg-transparent text-slate-800 dark:text-slate-200 border border-transparent hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 focus-visible:ring-slate-500',
   danger:
     'bg-red-600 text-white border border-transparent shadow-sm hover:bg-red-700 active:bg-red-800 focus-visible:ring-red-500',
   samajhna:

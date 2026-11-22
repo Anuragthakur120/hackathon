@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link, Navigate } from 'react-router-dom';
 import { useApp } from '../state/AppContext.jsx';
 import { useAuthStore } from '../state/authStore.js';
 import { LanguageSwitcher } from '../components/LanguageSwitcher.jsx';
+import { ThemeToggle } from '../components/ThemeToggle.jsx';
 import { AuthBrandPanel } from '../components/AuthBrandPanel.jsx';
 import { OtpInput } from '../components/ui/OtpInput.jsx';
 import { Button } from '../components/ui/Button.jsx';
@@ -199,47 +200,52 @@ export function LoginScreen() {
   return (
     <div
       data-testid="login-screen"
-      className="flex min-h-[calc(100vh-80px)] w-full items-center justify-center bg-gradient-to-br from-slate-50 via-indigo-50/30 to-teal-50/20 py-6 px-3 sm:px-6 lg:px-8 pb-28 sm:pb-12"
+      className="flex min-h-[calc(100vh-80px)] w-full items-center justify-center bg-gradient-to-br from-slate-50 via-indigo-50/30 to-teal-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/40 py-6 px-3 sm:px-6 lg:px-8 pb-28 sm:pb-12 text-slate-900 dark:text-slate-100 transition-colors duration-150"
     >
-      <div className="flex w-full max-w-5xl flex-col lg:flex-row overflow-hidden rounded-3xl border border-slate-200/90 bg-white/95 backdrop-blur-xl shadow-2xl transition-all">
-        {/* Left Side: Brand & Phase Explainer Panel (Desktop & Tablet) */}
+      <div className="flex w-full max-w-5xl flex-col lg:flex-row overflow-hidden rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl transition-all">
+        {/* Left Side: Brand & Phase Explainer Panel (Desktop & Tablet >= 1024px) */}
         <AuthBrandPanel />
 
         {/* Right Side: Form Card */}
         <div className="flex w-full flex-col justify-between p-6 sm:p-10 lg:w-1/2">
-          {/* Header Row: Switcher & Logo */}
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          {/* Header Row: Switcher & Theme Toggle & Logo */}
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
             <div className="flex items-center gap-2.5">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-teal-500 text-xl text-white shadow-md shadow-indigo-600/20">
                 🏛️
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-black tracking-tight text-slate-900 leading-tight">
+                <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white leading-tight">
                   NagarSathi
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400">
                   GovTech India AI
                 </span>
               </div>
             </div>
 
-            {/* Language Switcher with smooth downward opening */}
-            <div className="ml-auto">
-              <LanguageSwitcher navTestId="login-lang-nav" />
+            {/* Controls: Theme Toggle & Language Switcher with portal */}
+            <div className="flex items-center gap-2 ml-auto">
+              <ThemeToggle testId="login-theme-toggle-btn" />
+              <LanguageSwitcher
+                navTestId="login-lang-nav"
+                triggerTestId="login-lang-trigger"
+                menuTestId="login-lang-menu"
+              />
             </div>
           </div>
 
           <div className="my-auto max-w-md w-full mx-auto py-6 sm:py-8">
             {/* Welcome Heading & Subtext */}
             <div className="mb-6 sm:mb-8 text-center sm:text-left">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 mb-3 border border-indigo-100">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/70 px-3 py-1 text-xs font-bold text-indigo-700 dark:text-indigo-300 mb-3 border border-indigo-100 dark:border-indigo-900">
                 <span>🔐</span>
                 <span>{step === 'PHONE' ? 'Citizen Sign In' : 'Verification Step'}</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
                 {step === 'PHONE' ? t('auth.loginTitle') : t('auth.otpStepTitle')}
               </h1>
-              <p className="mt-1.5 text-sm font-medium text-slate-600">
+              <p className="mt-1.5 text-sm font-medium text-slate-600 dark:text-slate-300">
                 {step === 'PHONE'
                   ? 'Login to continue to NagarSathi'
                   : `${t('auth.otpStepSubtitle')} +91 ${phone}`}
@@ -251,7 +257,7 @@ export function LoginScreen() {
               <div
                 data-testid="login-error-msg"
                 role="alert"
-                className={`mb-5 flex items-center gap-2.5 rounded-2xl border border-rose-200 bg-rose-50/90 p-3.5 text-sm font-bold text-rose-800 shadow-xs ${
+                className={`mb-5 flex items-center gap-2.5 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/90 dark:bg-rose-950/50 p-3.5 text-sm font-bold text-rose-800 dark:text-rose-200 shadow-xs ${
                   shake ? 'animate-bounce' : ''
                 }`}
               >
@@ -263,7 +269,7 @@ export function LoginScreen() {
             {/* Segmented Auth Method Tabs (Active when on initial sign-in step) */}
             {step === 'PHONE' && (
               <div
-                className="flex rounded-2xl bg-slate-100 p-1 mb-6 border border-slate-200/60 select-none"
+                className="flex rounded-2xl bg-slate-100 dark:bg-slate-800 p-1 mb-6 border border-slate-200/60 dark:border-slate-700 select-none"
                 role="tablist"
                 aria-label="Login Methods"
               >
@@ -278,8 +284,8 @@ export function LoginScreen() {
                   }}
                   className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                     authMethod === 'OTP'
-                      ? 'bg-white text-indigo-900 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-white dark:bg-slate-900 text-indigo-900 dark:text-indigo-200 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <span aria-hidden="true">📱</span>
@@ -296,8 +302,8 @@ export function LoginScreen() {
                   }}
                   className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                     authMethod === 'PASSWORD'
-                      ? 'bg-white text-indigo-900 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-white dark:bg-slate-900 text-indigo-900 dark:text-indigo-200 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <span aria-hidden="true">✉️</span>
@@ -314,12 +320,12 @@ export function LoginScreen() {
                     <div>
                       <label
                         htmlFor="login-phone"
-                        className="mb-2 block text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700"
+                        className="mb-2 block text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
                       >
                         {t('auth.phoneLabel')}
                       </label>
-                      <div className="relative flex items-center rounded-2xl border-2 border-slate-200 bg-white shadow-xs transition-all duration-200 focus-within:border-indigo-600 focus-within:ring-4 focus-within:ring-indigo-500/20 hover:border-slate-300">
-                        <span className="flex items-center gap-1.5 pl-4 pr-3 text-sm font-bold text-slate-600 border-r border-slate-200 select-none">
+                      <div className="relative flex items-center rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xs transition-all duration-200 focus-within:border-indigo-600 dark:focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/20 hover:border-slate-300 dark:hover:border-slate-600">
+                        <span className="flex items-center gap-1.5 pl-4 pr-3 text-sm font-bold text-slate-600 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 select-none">
                           <span aria-hidden="true">🇮🇳</span>
                           <span>+91</span>
                         </span>
@@ -334,12 +340,12 @@ export function LoginScreen() {
                           onChange={handlePhoneChange}
                           placeholder={t('auth.phonePlaceholder')}
                           aria-label={t('auth.phoneLabel')}
-                          className="w-full min-h-[52px] bg-transparent py-3 pl-3 pr-4 text-base sm:text-lg font-bold tracking-wider text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none border-0"
+                          className="w-full min-h-[52px] bg-transparent py-3 pl-3 pr-4 text-base sm:text-lg font-bold tracking-wider text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal focus:outline-none border-0"
                           autoFocus
                         />
                       </div>
                       {fieldErrors.phone && (
-                        <p className="mt-1.5 text-xs font-semibold text-rose-600">
+                        <p className="mt-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
                           {fieldErrors.phone}
                         </p>
                       )}
@@ -347,7 +353,7 @@ export function LoginScreen() {
 
                     <div
                       data-testid="mock-otp-hint"
-                      className="rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50/90 via-blue-50/60 to-indigo-50/90 p-3.5 text-xs text-indigo-950 font-semibold flex items-center gap-2.5 shadow-xs"
+                      className="rounded-2xl border border-indigo-100 dark:border-indigo-900 bg-gradient-to-r from-indigo-50/90 via-blue-50/60 to-indigo-50/90 dark:from-indigo-950/50 dark:via-slate-900/50 dark:to-indigo-950/50 p-3.5 text-xs text-indigo-950 dark:text-indigo-200 font-semibold flex items-center gap-2.5 shadow-xs"
                     >
                       <span className="text-base" aria-hidden="true">💡</span>
                       <span>{t('auth.mockOtpHint')}</span>
@@ -391,14 +397,14 @@ export function LoginScreen() {
                           setErrorMsg('');
                           setOtpValue('');
                         }}
-                        className="text-indigo-600 hover:text-indigo-800 hover:underline transition-colors cursor-pointer"
+                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline transition-colors cursor-pointer"
                       >
                         ← {t('auth.changePhoneBtn')}
                       </button>
 
                       {resendCooldown > 0 ? (
-                        <span className="text-slate-500 font-medium">
-                          {t('auth.resendInLabel')} <span className="font-bold text-indigo-700">{resendCooldown}s</span>
+                        <span className="text-slate-500 dark:text-slate-400 font-medium">
+                          {t('auth.resendInLabel')} <span className="font-bold text-indigo-700 dark:text-indigo-300">{resendCooldown}s</span>
                         </span>
                       ) : (
                         <button
@@ -406,7 +412,7 @@ export function LoginScreen() {
                           data-testid="login-resend-otp-btn"
                           onClick={handleSendOtp}
                           disabled={loading || Boolean(lockedUntilState)}
-                          className="text-indigo-600 hover:text-indigo-800 hover:underline transition-colors cursor-pointer font-bold"
+                          className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline transition-colors cursor-pointer font-bold"
                         >
                           {t('auth.resendNowBtn')}
                         </button>
@@ -435,12 +441,12 @@ export function LoginScreen() {
                 <div>
                   <label
                     htmlFor="login-email"
-                    className="mb-1.5 block text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700"
+                    className="mb-1.5 block text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
                   >
                     Email or Username
                   </label>
-                  <div className="relative flex items-center rounded-2xl border-2 border-slate-200 bg-white shadow-xs transition-all duration-200 focus-within:border-indigo-600 focus-within:ring-4 focus-within:ring-indigo-500/20 hover:border-slate-300">
-                    <span className="pl-4 pr-2 text-slate-400 select-none text-base" aria-hidden="true">
+                  <div className="relative flex items-center rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xs transition-all duration-200 focus-within:border-indigo-600 dark:focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/20 hover:border-slate-300 dark:hover:border-slate-600">
+                    <span className="pl-4 pr-2 text-slate-400 dark:text-slate-500 select-none text-base" aria-hidden="true">
                       ✉️
                     </span>
                     <input
@@ -458,12 +464,12 @@ export function LoginScreen() {
                       }}
                       placeholder="citizen@nagarsathi.in or ramabai"
                       aria-label="Email or Username"
-                      className="w-full min-h-[52px] bg-transparent py-3 pl-2 pr-4 text-sm sm:text-base font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none border-0"
+                      className="w-full min-h-[52px] bg-transparent py-3 pl-2 pr-4 text-sm sm:text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal focus:outline-none border-0"
                       autoFocus
                     />
                   </div>
                   {fieldErrors.email && (
-                    <p className="mt-1.5 text-xs font-semibold text-rose-600">
+                    <p className="mt-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
                       {fieldErrors.email}
                     </p>
                   )}
@@ -473,12 +479,12 @@ export function LoginScreen() {
                 <div>
                   <label
                     htmlFor="login-password"
-                    className="mb-1.5 block text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700"
+                    className="mb-1.5 block text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
                   >
                     Password
                   </label>
-                  <div className="relative flex items-center rounded-2xl border-2 border-slate-200 bg-white shadow-xs transition-all duration-200 focus-within:border-indigo-600 focus-within:ring-4 focus-within:ring-indigo-500/20 hover:border-slate-300">
-                    <span className="pl-4 pr-2 text-slate-400 select-none text-base" aria-hidden="true">
+                  <div className="relative flex items-center rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xs transition-all duration-200 focus-within:border-indigo-600 dark:focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/20 hover:border-slate-300 dark:hover:border-slate-600">
+                    <span className="pl-4 pr-2 text-slate-400 dark:text-slate-500 select-none text-base" aria-hidden="true">
                       🔒
                     </span>
                     <input
@@ -496,14 +502,14 @@ export function LoginScreen() {
                       }}
                       placeholder="Enter your password"
                       aria-label="Password"
-                      className="w-full min-h-[52px] bg-transparent py-3 pl-2 pr-12 text-sm sm:text-base font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none border-0"
+                      className="w-full min-h-[52px] bg-transparent py-3 pl-2 pr-12 text-sm sm:text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal focus:outline-none border-0"
                     />
                     <button
                       type="button"
                       data-testid="login-toggle-password"
                       onClick={() => setShowPassword((prev) => !prev)}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      className="absolute right-3.5 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                      className="absolute right-3.5 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                     >
                       <span className="text-sm" aria-hidden="true">
                         {showPassword ? '🙈' : '👁️'}
@@ -511,7 +517,7 @@ export function LoginScreen() {
                     </button>
                   </div>
                   {fieldErrors.password && (
-                    <p className="mt-1.5 text-xs font-semibold text-rose-600">
+                    <p className="mt-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
                       {fieldErrors.password}
                     </p>
                   )}
@@ -525,23 +531,23 @@ export function LoginScreen() {
                       data-testid="login-remember-me"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                      className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 dark:bg-slate-800 focus:ring-indigo-500 cursor-pointer"
                     />
-                    <span className="font-semibold text-slate-700">Remember me</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">Remember me</span>
                   </label>
 
                   <button
                     type="button"
                     data-testid="login-forgot-password"
                     onClick={() => setForgotModal(true)}
-                    className="font-bold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors cursor-pointer"
+                    className="font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline transition-colors cursor-pointer"
                   >
                     Forgot password?
                   </button>
                 </div>
 
                 {/* Password Demo Hint */}
-                <div className="rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50/90 via-blue-50/60 to-indigo-50/90 p-3 text-xs text-indigo-950 font-semibold flex items-center gap-2 shadow-xs">
+                <div className="rounded-2xl border border-indigo-100 dark:border-indigo-900 bg-gradient-to-r from-indigo-50/90 via-blue-50/60 to-indigo-50/90 dark:from-indigo-950/50 dark:via-slate-900/50 dark:to-indigo-950/50 p-3 text-xs text-indigo-950 dark:text-indigo-200 font-semibold flex items-center gap-2 shadow-xs">
                   <span className="text-base" aria-hidden="true">💡</span>
                   <span>Demo access: Use username <strong>ramabai</strong> or your email to continue.</span>
                 </div>
@@ -561,12 +567,12 @@ export function LoginScreen() {
             )}
 
             {/* Signup Link */}
-            <div className="mt-8 text-center text-sm font-semibold text-slate-600">
+            <div className="mt-8 text-center text-sm font-semibold text-slate-600 dark:text-slate-400">
               {t('auth.newHere')}{' '}
               <Link
                 to="/signup"
                 data-testid="login-signup-link"
-                className="font-bold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors"
+                className="font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline transition-colors"
               >
                 {t('auth.signupLink')}
               </Link>
@@ -574,23 +580,23 @@ export function LoginScreen() {
           </div>
 
           {/* Mobile Highlights Section: Ensures 100% option & feature parity on Mobile */}
-          <div className="lg:hidden mt-6 mb-4 space-y-2.5 rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-teal-800 mb-2 flex items-center gap-1.5">
+          <div className="lg:hidden mt-6 mb-4 space-y-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/60 p-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-teal-800 dark:text-teal-300 mb-2 flex items-center gap-1.5">
               <span>🏛️</span>
               <span>{t('phaseExplainerTitle')}</span>
             </div>
             <div className="grid grid-cols-1 gap-2 text-xs">
-              <div className="flex items-center gap-2.5 rounded-xl bg-white p-2.5 border border-slate-100 shadow-2xs">
+              <div className="flex items-center gap-2.5 rounded-xl bg-white dark:bg-slate-900 p-2.5 border border-slate-100 dark:border-slate-800 shadow-2xs">
                 <span className="text-base" aria-hidden="true">🎙️</span>
-                <span className="font-bold text-slate-800">{t('auth.phase1Title')}</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">{t('auth.phase1Title')}</span>
               </div>
-              <div className="flex items-center gap-2.5 rounded-xl bg-white p-2.5 border border-slate-100 shadow-2xs">
+              <div className="flex items-center gap-2.5 rounded-xl bg-white dark:bg-slate-900 p-2.5 border border-slate-100 dark:border-slate-800 shadow-2xs">
                 <span className="text-base" aria-hidden="true">📝</span>
-                <span className="font-bold text-slate-800">{t('auth.phase2Title')}</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">{t('auth.phase2Title')}</span>
               </div>
-              <div className="flex items-center gap-2.5 rounded-xl bg-white p-2.5 border border-slate-100 shadow-2xs">
+              <div className="flex items-center gap-2.5 rounded-xl bg-white dark:bg-slate-900 p-2.5 border border-slate-100 dark:border-slate-800 shadow-2xs">
                 <span className="text-base" aria-hidden="true">🔍</span>
-                <span className="font-bold text-slate-800">{t('auth.phase3Title')}</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">{t('auth.phase3Title')}</span>
               </div>
             </div>
           </div>
@@ -598,7 +604,7 @@ export function LoginScreen() {
           {/* Trust Strip */}
           <div
             data-testid="auth-trust-strip"
-            className="border-t border-slate-100 pt-4 text-center text-xs text-slate-500 flex items-center justify-center gap-2 font-medium"
+            className="border-t border-slate-100 dark:border-slate-800 pt-4 text-center text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center gap-2 font-medium"
           >
             <span aria-hidden="true" className="text-sm">🛡️</span>
             <span>{t('auth.trustStrip')}</span>
@@ -612,16 +618,16 @@ export function LoginScreen() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="forgot-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-black/80 backdrop-blur-xs p-4"
         >
-          <div className="w-full max-w-sm rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-2xl text-indigo-700 mb-4">
+          <div className="w-full max-w-sm rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-2xl animate-in fade-in zoom-in-95 text-slate-900 dark:text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/70 text-2xl text-indigo-700 dark:text-indigo-300 mb-4">
               🔑
             </div>
-            <h2 id="forgot-modal-title" className="text-lg font-black text-slate-900">
+            <h2 id="forgot-modal-title" className="text-lg font-black text-slate-900 dark:text-white">
               Reset Your Credentials
             </h2>
-            <p className="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed">
+            <p className="mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
               For security, NagarSathi accounts are linked to your Aadhaar & Indian mobile number. You can sign in directly using <strong>Mobile OTP</strong> verification, or visit your nearest Taluka CSC center for account recovery.
             </p>
             <div className="mt-6 flex flex-col gap-2">
@@ -638,7 +644,7 @@ export function LoginScreen() {
               <button
                 type="button"
                 onClick={() => setForgotModal(false)}
-                className="w-full rounded-xl bg-slate-100 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
+                className="w-full rounded-xl bg-slate-100 dark:bg-slate-800 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               >
                 Close
               </button>

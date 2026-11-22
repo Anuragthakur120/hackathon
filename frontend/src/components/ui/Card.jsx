@@ -28,7 +28,7 @@ export function Card({
   return (
     <div
       className={[
-        'bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden',
+        'bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden text-slate-900 dark:text-slate-100',
         'transition-all duration-200 motion-reduce:transition-none',
         hoverable ? 'hover:shadow-md transition-shadow' : '',
         className,
@@ -43,12 +43,12 @@ export function Card({
           <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
             <div>
               {title && (
-                <h3 className="text-xl font-bold text-slate-900 leading-snug">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-snug">
                   {title}
                 </h3>
               )}
               {subtitle && (
-                <p className="text-base text-slate-600 mt-1 leading-relaxed">
+                <p className="text-base text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
                   {subtitle}
                 </p>
               )}

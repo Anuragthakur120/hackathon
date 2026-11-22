@@ -29,7 +29,7 @@ export function SchemeCard({ scheme, language = 'en' }) {
   return (
     <div
       data-testid={`scheme-card-${scheme.schemeId}`}
-      className="group flex h-full flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-md min-w-0 overflow-hidden break-words [word-break:break-word]"
+      className="group flex h-full flex-col justify-between rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-md min-w-0 overflow-hidden break-words [word-break:break-word] text-slate-900 dark:text-slate-100"
       style={{ minWidth: 0, overflow: 'hidden', wordBreak: 'break-word' }}
     >
       <div className="flex-1 flex flex-col min-w-0">

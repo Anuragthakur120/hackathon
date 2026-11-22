@@ -43,14 +43,14 @@ export function Input({
           error ? errorId : helper ? helperId : undefined
         }
         className={[
-          'w-full min-h-[56px] px-4 py-3 rounded-xl bg-white text-slate-900 text-base font-medium',
+          'w-full min-h-[56px] px-4 py-3 rounded-xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-base font-medium',
           'border-2 transition-all duration-150 motion-reduce:transition-none',
-          'placeholder:text-slate-400',
+          'placeholder:text-slate-400 dark:placeholder:text-slate-500',
           'focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-1',
           error
             ? 'border-red-600 focus-visible:ring-red-500/30'
-            : 'border-slate-300 hover:border-slate-400 focus:border-indigo-600 focus-visible:ring-indigo-500/30',
-          'disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed',
+            : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 focus:border-indigo-600 focus-visible:ring-indigo-500/30',
+          'disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed',
         ].join(' ')}
         {...rest}
       />

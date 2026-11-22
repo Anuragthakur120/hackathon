@@ -13,6 +13,7 @@ import {
 import { api } from '../api/index.js';
 
 const STORAGE_KEY = 'nagarsathi_lang';
+const THEME_STORAGE_KEY = 'nagarsathi_theme';
 
 const AppContext = createContext(null);
 
@@ -25,10 +26,67 @@ function loadStoredLanguage() {
   }
 }
 
+function loadStoredTheme() {
+  try {
+    const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+    return saved === 'dark' || saved === 'light' || saved === 'system' ? saved : 'system';
+  } catch {
+    return 'system';
+  }
+}
+
 export function AppProvider({ children, initialLanguage }) {
   const [language, setLanguageState] = useState(
     () => (initialLanguage ? normalizeLangCode(initialLanguage) : loadStoredLanguage())
   );
+  const [theme, setThemeState] = useState(loadStoredTheme);
+  const [resolvedTheme, setResolvedTheme] = useState(() => {
+    if (typeof window === 'undefined') return 'light';
+    const stored = loadStoredTheme();
+    if (stored === 'dark') return 'dark';
+    if (stored === 'light') return 'light';
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  const applyTheme = useCallback((targetTheme) => {
+    const isDark =
+      targetTheme === 'dark' ||
+      (targetTheme === 'system' &&
+        typeof window !== 'undefined' &&
+        window.matchMedia &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+    if (typeof document !== 'undefined' && document.documentElement) {
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+    setResolvedTheme(isDark ? 'dark' : 'light');
+  }, []);
+
+  const setTheme = useCallback(
+    (nextTheme) => {
+      setThemeState(nextTheme);
+      try {
+        window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+      } catch {}
+      applyTheme(nextTheme);
+    },
+    [applyTheme]
+  );
+
+  useEffect(() => {
+    applyTheme(theme);
+
+    if (theme === 'system' && typeof window !== 'undefined' && window.matchMedia) {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = () => applyTheme('system');
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
+  }, [theme, applyTheme]);
   const [caseState, setCaseState] = useState(() =>
     createInitialCaseState(initialLanguage ? normalizeLangCode(initialLanguage) : loadStoredLanguage())
   );
@@ -281,6 +339,9 @@ export function AppProvider({ children, initialLanguage }) {
     () => ({
       language,
       setLanguage,
+      theme,
+      resolvedTheme,
+      setTheme,
       t,
       dictionary,
       caseState,
@@ -295,6 +356,9 @@ export function AppProvider({ children, initialLanguage }) {
     [
       language,
       setLanguage,
+      theme,
+      resolvedTheme,
+      setTheme,
       t,
       dictionary,
       caseState,

@@ -165,4 +165,62 @@ describe('Auth Guard & Redesigned Login Screen', () => {
       expect(screen.queryByTestId('citizen-dashboard')).not.toBeInTheDocument();
     });
   });
+
+  it('TASK 3: theme toggle switches between Light, Dark, and System and persists in localStorage', async () => {
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <AppProvider initialLanguage="en-IN">
+          <AppRoutes />
+        </AppProvider>
+      </MemoryRouter>
+    );
+
+    const themeToggleBtn = screen.getByTestId('theme-toggle-btn');
+    expect(themeToggleBtn).toBeInTheDocument();
+
+    // Default or first click toggles to light/dark
+    fireEvent.click(themeToggleBtn);
+    const storedTheme = window.localStorage.getItem('nagarsathi_theme');
+    expect(['light', 'dark', 'system']).toContain(storedTheme);
+
+    // Click again to cycle
+    fireEvent.click(themeToggleBtn);
+    const secondTheme = window.localStorage.getItem('nagarsathi_theme');
+    expect(secondTheme).not.toBe(storedTheme);
+  });
+
+  it('TASK 5: mobile viewport opens portal bottom sheet for language selection', async () => {
+    window.innerWidth = 375;
+    window.dispatchEvent(new Event('resize'));
+
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <AppProvider initialLanguage="en-IN">
+          <AppRoutes />
+        </AppProvider>
+      </MemoryRouter>
+    );
+
+    const trigger = screen.getByTestId('language-switcher-trigger');
+    expect(trigger).toBeInTheDocument();
+
+    // Tap language switcher
+    fireEvent.click(trigger);
+
+    // Portal bottom sheet appears with data-layout="bottom-sheet"
+    const menu = screen.getByTestId('language-switcher-menu');
+    expect(menu).toBeInTheDocument();
+    expect(menu).toHaveAttribute('data-layout', 'bottom-sheet');
+    expect(screen.getByTestId('language-switcher-backdrop')).toBeInTheDocument();
+
+    // Select Marathi (mr)
+    const mrOption = screen.getByTestId('lang-option-mr');
+    expect(mrOption).toHaveTextContent('मराठी');
+    fireEvent.click(mrOption);
+
+    // Bottom sheet closes and language is saved
+    expect(screen.queryByTestId('language-switcher-menu')).not.toBeInTheDocument();
+    expect(window.localStorage.getItem('nagarsathi_lang')).toBe('mr-IN');
+    expect(document.documentElement.lang).toBe('mr');
+  });
 });

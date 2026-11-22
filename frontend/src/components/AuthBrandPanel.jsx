@@ -4,7 +4,7 @@ export function AuthBrandPanel() {
   const { t } = useApp();
 
   return (
-    <div className="relative hidden w-full lg:flex lg:w-1/2 flex-col justify-between overflow-hidden bg-gradient-to-br from-indigo-700 via-blue-600 to-teal-600 p-10 xl:p-14 text-white shadow-2xl">
+    <div className="relative hidden w-full lg:flex lg:w-1/2 flex-col justify-between overflow-hidden bg-gradient-to-br from-indigo-700 via-blue-600 to-teal-600 dark:from-indigo-950 dark:via-slate-900 dark:to-teal-950 p-10 xl:p-14 text-white shadow-2xl border-r border-indigo-500/20 dark:border-slate-800">
       {/* Background soft blur blobs */}
       <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-20 -right-20 h-80 w-80 rounded-full bg-teal-300/20 blur-3xl" />

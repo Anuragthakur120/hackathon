@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="data:," />
     <title>NagarSathi — नगरसाथी</title>
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('nagarsathi_theme') || 'system';
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (theme === 'dark' || (theme === 'system' && prefersDark)) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -12,7 +25,7 @@
       rel="stylesheet"
     />
   </head>
-  <body class="bg-slate-50 text-slate-900 font-sans text-base antialiased">
+  <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans text-base antialiased transition-colors duration-150">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
